@@ -1,0 +1,145 @@
+import { db } from "./db";
+
+export async function seedDatabase() {
+  const existingUsers = await db("users").count("* as count");
+  if (Number(existingUsers[0].count) > 0) return;
+
+  const users = await db("users").insert([
+    { username: "scott.foley", full_name: "Scott Foley", role: "cas_lead", email: "scott.foley@reasongroup.com" },
+    { username: "alex.kocz", full_name: "Alex Kocz", role: "csd_lead", email: "alex.kocz@reasongroup.com" },
+    { username: "mark.volpato", full_name: "Mark Volpato", role: "bid_manager", email: "mark.volpato@reasongroup.com" },
+    { username: "anil.kinagi", full_name: "Anil Kinagi", role: "writer", email: "anil.kinagi@reasongroup.com" },
+    { username: "rupa.tamang", full_name: "Rupa Tamang", role: "executive", email: "rupa.tamang@reasongroup.com" },
+  ]).returning("*");
+
+  const opps = await db("opportunities").insert([
+    {
+      name: "ABS ServiceNow PPM & IRM 202504",
+      phase: "1.A - Activity",
+      value: 450000,
+      margin: 0.25,
+      work_type: "Delivery",
+      vat: "GROWTH",
+      status: "Risk",
+      comment: "PPM and IRM Contract with SNOW, migration opportunity",
+      cas_lead: "Scott Foley",
+      csd_lead: "Alex Kocz",
+      category: "Hunt;Partner",
+      partner: "ServiceNow",
+      client_contact: "Ian Scensor",
+      client_code: "ABS",
+    },
+    {
+      name: "ACR RFQ DOD WP3 Transition HR Modules",
+      phase: "1.A - Activity",
+      value: 1999992,
+      margin: 0.27,
+      work_type: "Resource Pool",
+      vat: "GROWTH",
+      status: "Risk",
+      comment: "Recontest after no decision on PASSS, likely Infosys got extension",
+      cas_lead: "Aleksandar Vranesevic",
+      csd_lead: "Alex Kocz",
+      category: "Hunt;ERP;Partner",
+      partner: "Oracle;SAP",
+      client_code: "PTR-Accenture",
+    },
+    {
+      name: "Notice Enterprise Sustainability Platform 202511",
+      phase: "1.A - Activity",
+      work_type: "RFI/EOI",
+      vat: "GROWTH",
+      comment: "Advance notice only.",
+      cas_lead: "Aleksandar Vranesevic",
+      category: "Hunt",
+      client_code: "ACT",
+    },
+    {
+      name: "Defence Cloud Migration Program 2025",
+      phase: "2.B - Qualified",
+      value: 3500000,
+      margin: 0.30,
+      work_type: "Delivery",
+      vat: "GROWTH",
+      status: "Active",
+      comment: "Large scale cloud migration for defence infrastructure",
+      cas_lead: "Scott Foley",
+      csd_lead: "Anil Kinagi",
+      category: "Hunt;Cloud",
+      partner: "AWS;Microsoft",
+      client_code: "DEF",
+    },
+    {
+      name: "Federal Data Analytics Platform RFP",
+      phase: "1.A - Activity",
+      value: 2100000,
+      margin: 0.22,
+      work_type: "Project",
+      vat: "GROWTH",
+      status: "New",
+      comment: "Analytics platform modernization using Power BI and Azure",
+      cas_lead: "Mark Volpato",
+      csd_lead: "Alex Kocz",
+      category: "Hunt;Analytics",
+      partner: "Microsoft",
+      client_code: "FED",
+    },
+  ]).returning("*");
+
+  const bidEntries = await db("bids").insert([
+    {
+      opportunity_id: opps[3].id,
+      title: "Defence Cloud Migration Program 2025",
+      stage: "writing",
+      cas_qualified: "qualified",
+      csd_qualified: "qualified",
+      bid_manager_id: 3,
+      assigned_writer_id: 4,
+      care_score: 7.5,
+      competitive_position: 8,
+      attractiveness: 9,
+      relationship_strength: 6,
+      ease_of_response: 7,
+      care_analysis: "Strong competitive position with AWS/Microsoft partnership. Highly attractive deal with good margins. Moderate relationship - need to strengthen client engagement. Reasonable response timeline.",
+    },
+    {
+      opportunity_id: opps[0].id,
+      title: "ABS ServiceNow PPM & IRM 202504",
+      stage: "cas_qualification",
+      cas_qualified: "pending",
+      csd_qualified: "pending",
+    },
+    {
+      opportunity_id: opps[4].id,
+      title: "Federal Data Analytics Platform RFP",
+      stage: "executive_review",
+      cas_qualified: "qualified",
+      csd_qualified: "qualified",
+      bid_manager_id: 3,
+      assigned_writer_id: 4,
+      care_score: 8.0,
+      competitive_position: 8,
+      attractiveness: 8,
+      relationship_strength: 7,
+      ease_of_response: 9,
+      executive_approval: "pending",
+      technical_response: "# Federal Data Analytics Platform\n\n## Executive Summary\nReason Group proposes a comprehensive analytics modernization platform...",
+      delivery_plan: "# Delivery Plan\n\n## Phase 1: Discovery (Weeks 1-4)\n...",
+      resource_plan: "# Resource Plan\n\n## Team Structure\n| Role | FTE | Duration |\n|------|-----|----------|\n| Project Manager | 1 | 6 months |",
+    },
+  ]).returning("*");
+
+  await db("workflow_logs").insert([
+    { bid_id: bidEntries[0].id, action: "Bid Created", from_stage: null, to_stage: "cas_qualification", performed_by: "System" },
+    { bid_id: bidEntries[0].id, action: "CAS Qualified", from_stage: "cas_qualification", to_stage: "csd_qualification", performed_by: "Scott Foley" },
+    { bid_id: bidEntries[0].id, action: "CSD Qualified", from_stage: "csd_qualification", to_stage: "bid_manager_review", performed_by: "Alex Kocz" },
+    { bid_id: bidEntries[0].id, action: "Writer Assigned", from_stage: "bid_manager_review", to_stage: "writing", performed_by: "Mark Volpato" },
+    { bid_id: bidEntries[1].id, action: "Bid Created", from_stage: null, to_stage: "cas_qualification", performed_by: "System" },
+    { bid_id: bidEntries[2].id, action: "Bid Created", from_stage: null, to_stage: "cas_qualification", performed_by: "System" },
+    { bid_id: bidEntries[2].id, action: "CAS Qualified", from_stage: "cas_qualification", to_stage: "csd_qualification", performed_by: "Mark Volpato" },
+    { bid_id: bidEntries[2].id, action: "CSD Qualified", from_stage: "csd_qualification", to_stage: "bid_manager_review", performed_by: "Alex Kocz" },
+    { bid_id: bidEntries[2].id, action: "Submitted for Review", from_stage: "writing", to_stage: "executive_review", performed_by: "Anil Kinagi" },
+  ]);
+
+  console.log("Database seeded successfully");
+}
