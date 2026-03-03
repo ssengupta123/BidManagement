@@ -928,22 +928,30 @@ function AllocationGrid({
                   const isFirstOfMonth = monthGroups.some((g) => g.startIdx === i);
                   const inDrag = isDragging && i >= dragLo && i <= dragHi;
 
-                  let cellBg = "bg-muted/30 dark:bg-muted/10";
+                  let cellStyle: React.CSSProperties = {};
                   let cellText = "text-muted-foreground/30";
-                  let cellBorder = "border-transparent";
-                  if (val > 0) {
-                    if (val >= 100) {
-                      cellBg = "bg-emerald-500 dark:bg-emerald-600"; cellText = "text-white"; cellBorder = "border-emerald-600 dark:border-emerald-500";
-                    } else if (val >= 80) {
-                      cellBg = "bg-emerald-400/80 dark:bg-emerald-500/70"; cellText = "text-white"; cellBorder = "border-emerald-500/60";
-                    } else if (val >= 50) {
-                      cellBg = "bg-sky-400/70 dark:bg-sky-500/60"; cellText = "text-white"; cellBorder = "border-sky-500/50";
-                    } else {
-                      cellBg = "bg-sky-300/40 dark:bg-sky-400/30"; cellText = "text-sky-800 dark:text-sky-200"; cellBorder = "border-sky-400/30";
-                    }
-                  }
-                  if (val > maxAlloc) {
-                    cellBg = "bg-amber-500 dark:bg-amber-600"; cellText = "text-white"; cellBorder = "border-amber-600 dark:border-amber-500";
+                  let cellExtra = "";
+                  if (val === 0) {
+                    cellStyle = { background: hasHoliday ? "repeating-linear-gradient(135deg, transparent, transparent 3px, rgba(251,191,36,0.08) 3px, rgba(251,191,36,0.08) 6px)" : undefined };
+                    cellText = "text-muted-foreground/20";
+                  } else if (val > maxAlloc) {
+                    cellStyle = { background: "linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)" };
+                    cellText = "text-white"; cellExtra = "shadow-sm shadow-red-500/20";
+                  } else if (val >= 100) {
+                    cellStyle = { background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" };
+                    cellText = "text-white"; cellExtra = "shadow-sm shadow-emerald-500/20";
+                  } else if (val >= 80) {
+                    cellStyle = { background: "linear-gradient(135deg, #10b981 0%, #34d399 100%)" };
+                    cellText = "text-white"; cellExtra = "shadow-sm shadow-emerald-400/15";
+                  } else if (val >= 50) {
+                    cellStyle = { background: "linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%)" };
+                    cellText = "text-white"; cellExtra = "shadow-sm shadow-sky-400/15";
+                  } else if (val >= 20) {
+                    cellStyle = { background: "linear-gradient(135deg, #7dd3fc 0%, #bae6fd 100%)" };
+                    cellText = "text-sky-900 dark:text-sky-100";
+                  } else {
+                    cellStyle = { background: "linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%)" };
+                    cellText = "text-sky-700 dark:text-sky-300";
                   }
 
                   return (
@@ -951,7 +959,8 @@ function AllocationGrid({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div
-                            className={`w-10 h-7 text-[9px] font-semibold flex items-center justify-center cursor-crosshair transition-colors border ${cellBg} ${cellText} ${cellBorder} ${inDrag ? "ring-2 ring-primary/50 ring-inset" : ""}`}
+                            style={cellStyle}
+                            className={`w-10 h-7 text-[9px] font-semibold flex items-center justify-center cursor-crosshair transition-colors rounded-[2px] border border-border/20 ${cellText} ${cellExtra} ${inDrag ? "ring-2 ring-primary/50 ring-inset" : ""}`}
                             onMouseDown={(e) => {
                               e.preventDefault();
                               if (e.button === 2) return;
@@ -1008,14 +1017,14 @@ function AllocationGrid({
           </table>
         </TooltipProvider>
       </div>
-      <div className="flex items-center gap-3 text-[9px] text-muted-foreground pt-1">
-        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /> 100%</span>
-        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-400/80" /> 80%</span>
-        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-sky-400/70" /> 50%</span>
-        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-sky-300/40" /> 20%</span>
-        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-amber-500" /> Over limit</span>
-        <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">* = holiday week (capped)</span>
-        <span className="text-muted-foreground/70">Drag to fill · Right-click to clear</span>
+      <div className="flex items-center gap-3 text-[9px] text-muted-foreground pt-1 flex-wrap">
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }} /> 100%</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #10b981 0%, #34d399 100%)" }} /> 80%</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%)" }} /> 50%</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #7dd3fc 0%, #bae6fd 100%)" }} /> 20%</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)" }} /> Over limit</span>
+        <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">* = public holiday (capped)</span>
+        <span className="text-muted-foreground/70">Click to cycle · Drag to fill · Right-click to clear</span>
       </div>
     </div>
   );
