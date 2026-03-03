@@ -78,7 +78,7 @@ All workflow transition endpoints validate that the bid is in the correct stage 
 - Auto-calculated: effective rate, daily rate, budget $, forecast $, gross margin, variance
 - Weekly allocation view with click-to-cycle and holiday-aware max allocation (national + state holidays; VIC default)
 - State/territory selector for holiday calculation (VIC, NSW, QLD, etc.)
-- Color-coded allocation cells: emerald (80-100%), sky (20-50%), amber (over limit)
+- Color-coded allocation cells with gradient styling: emerald gradients (80-100%), sky gradients (20-50%), amber-to-red gradient (over limit)
 - Public holiday weeks marked with asterisk and capped allocation
 - Summary cards showing forecast revenue, gross margin, forecast hours, budget variance
 - Charge out levels: Partner, Principal, Director, Senior Manager, Manager, Senior Consultant, Consultant
