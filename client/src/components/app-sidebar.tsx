@@ -8,7 +8,7 @@ import {
   Users,
   Upload,
 } from "lucide-react";
-import logoPath from "@assets/Reason_Group_Logo_Stacked_CMYK_(1)_1772403847177.png";
+const logoPath = "/reason-group-logo.png";
 import {
   Sidebar,
   SidebarContent,
