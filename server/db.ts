@@ -22,12 +22,16 @@ function createKnexConfig(): Knex.Knex.Config {
         database,
         user,
         password,
+        port: parseInt(process.env.MSSQL_PORT || "1433"),
         options: {
           encrypt: true,
           trustServerCertificate: false,
+          connectTimeout: 30000,
+          requestTimeout: 30000,
         },
       },
-      pool: { min: 2, max: 10 },
+      pool: { min: 0, max: 10, idleTimeoutMillis: 30000 },
+      acquireConnectionTimeout: 30000,
     };
   }
 
