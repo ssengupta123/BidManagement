@@ -284,11 +284,11 @@ export default function BidDetail() {
         <div className="flex-1 min-w-0">
           <h1 className="text-lg font-bold tracking-tight truncate" data-testid="text-bid-title">{bid.title}</h1>
           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-            <Badge className={`text-[10px] font-semibold ${getStageColor(bid.stage)} bg-transparent border`} data-testid="badge-current-stage">
+            <Badge className={`text-[13px] font-semibold ${getStageColor(bid.stage)} bg-transparent border`} data-testid="badge-current-stage">
               {getStageLabel(bid.stage)}
             </Badge>
             {bid.careScore && (
-              <Badge variant="outline" className="text-[10px]" data-testid="badge-care-score">
+              <Badge variant="outline" className="text-[13px]" data-testid="badge-care-score">
                 <Brain className="h-2.5 w-2.5 mr-1" />
                 CARE {bid.careScore.toFixed(1)}/10
               </Badge>
@@ -311,7 +311,7 @@ export default function BidDetail() {
               <div key={step.stage} className="flex items-center flex-1 last:flex-none">
                 <div className="flex flex-col items-center">
                   <div
-                    className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300
+                    className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300
                       ${isCompleted
                         ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
                         : isCurrent
@@ -323,7 +323,7 @@ export default function BidDetail() {
                   >
                     {isCompleted ? <CheckCircle className="h-4 w-4" /> : idx + 1}
                   </div>
-                  <span className={`text-[10px] mt-1.5 text-center font-medium ${isCurrent ? "text-foreground" : "text-muted-foreground/60"}`}>
+                  <span className={`text-[13px] mt-1.5 text-center font-medium ${isCurrent ? "text-foreground" : "text-muted-foreground/60"}`}>
                     {step.label}
                   </span>
                 </div>
@@ -338,13 +338,13 @@ export default function BidDetail() {
 
       <Tabs defaultValue="workflow" className="w-full">
         <TabsList className="w-full justify-start h-10 bg-muted/50 p-1 rounded-lg">
-          <TabsTrigger value="workflow" data-testid="tab-workflow" className="text-xs rounded-md">Workflow</TabsTrigger>
-          <TabsTrigger value="care" data-testid="tab-care" className="text-xs rounded-md">CARE</TabsTrigger>
-          <TabsTrigger value="response" data-testid="tab-response" className="text-xs rounded-md">Response</TabsTrigger>
-          <TabsTrigger value="delivery" data-testid="tab-delivery" className="text-xs rounded-md">Delivery</TabsTrigger>
-          <TabsTrigger value="resource" data-testid="tab-resource" className="text-xs rounded-md">Resource</TabsTrigger>
-          <TabsTrigger value="final" data-testid="tab-final" className="text-xs rounded-md">Final</TabsTrigger>
-          <TabsTrigger value="history" data-testid="tab-history" className="text-xs rounded-md">History</TabsTrigger>
+          <TabsTrigger value="workflow" data-testid="tab-workflow" className="text-sm rounded-md">Workflow</TabsTrigger>
+          <TabsTrigger value="care" data-testid="tab-care" className="text-sm rounded-md">CARE</TabsTrigger>
+          <TabsTrigger value="response" data-testid="tab-response" className="text-sm rounded-md">Response</TabsTrigger>
+          <TabsTrigger value="delivery" data-testid="tab-delivery" className="text-sm rounded-md">Delivery</TabsTrigger>
+          <TabsTrigger value="resource" data-testid="tab-resource" className="text-sm rounded-md">Resource</TabsTrigger>
+          <TabsTrigger value="final" data-testid="tab-final" className="text-sm rounded-md">Final</TabsTrigger>
+          <TabsTrigger value="history" data-testid="tab-history" className="text-sm rounded-md">History</TabsTrigger>
         </TabsList>
 
         <TabsContent value="workflow" className="mt-4">
@@ -357,13 +357,13 @@ export default function BidDetail() {
                   </div>
                   <div>
                     <CardTitle className="text-sm font-semibold">CAS Team Qualification</CardTitle>
-                    <p className="text-xs text-muted-foreground">Sales team reviews strategic and commercial fit</p>
+                    <p className="text-sm text-muted-foreground">Sales team reviews strategic and commercial fit</p>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 pt-0">
                 <div>
-                  <Label className="text-xs font-medium">Notes</Label>
+                  <Label className="text-sm font-medium">Notes</Label>
                   <Textarea
                     value={qualifyNotes}
                     onChange={(e) => setQualifyNotes(e.target.value)}
@@ -395,13 +395,13 @@ export default function BidDetail() {
                   </div>
                   <div>
                     <CardTitle className="text-sm font-semibold">CSD Team Qualification</CardTitle>
-                    <p className="text-xs text-muted-foreground">Delivery team assesses feasibility and resource availability</p>
+                    <p className="text-sm text-muted-foreground">Delivery team assesses feasibility and resource availability</p>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 pt-0">
                 <div>
-                  <Label className="text-xs font-medium">Notes</Label>
+                  <Label className="text-sm font-medium">Notes</Label>
                   <Textarea
                     value={qualifyNotes}
                     onChange={(e) => setQualifyNotes(e.target.value)}
@@ -433,14 +433,14 @@ export default function BidDetail() {
                   </div>
                   <div>
                     <CardTitle className="text-sm font-semibold">Assign Bid Manager & Writer</CardTitle>
-                    <p className="text-xs text-muted-foreground">Select team members to prepare the response</p>
+                    <p className="text-sm text-muted-foreground">Select team members to prepare the response</p>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 pt-0">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-xs font-medium">Bid Manager</Label>
+                    <Label className="text-sm font-medium">Bid Manager</Label>
                     <Select value={selectedManager} onValueChange={setSelectedManager}>
                       <SelectTrigger data-testid="select-bid-manager" className="mt-1.5">
                         <SelectValue placeholder="Select manager" />
@@ -453,7 +453,7 @@ export default function BidDetail() {
                     </Select>
                   </div>
                   <div>
-                    <Label className="text-xs font-medium">Technical Writer</Label>
+                    <Label className="text-sm font-medium">Technical Writer</Label>
                     <Select value={selectedWriter} onValueChange={setSelectedWriter}>
                       <SelectTrigger data-testid="select-writer" className="mt-1.5">
                         <SelectValue placeholder="Select writer" />
@@ -488,7 +488,7 @@ export default function BidDetail() {
                   </div>
                   <div>
                     <CardTitle className="text-sm font-semibold">Response Writing</CardTitle>
-                    <p className="text-xs text-muted-foreground">Generate technical response, delivery plan, and resource plan</p>
+                    <p className="text-sm text-muted-foreground">Generate technical response, delivery plan, and resource plan</p>
                   </div>
                 </div>
               </CardHeader>
@@ -498,8 +498,8 @@ export default function BidDetail() {
                     <div className="flex items-center gap-2">
                       {generateResponseMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <FileText className="h-4 w-4 text-chart-2 shrink-0" />}
                       <div>
-                        <p className="text-xs font-semibold">Technical Response</p>
-                        <p className="text-[10px] text-muted-foreground">{bid.technicalResponse ? "Regenerate" : "Generate"}</p>
+                        <p className="text-sm font-semibold">Technical Response</p>
+                        <p className="text-[13px] text-muted-foreground">{bid.technicalResponse ? "Regenerate" : "Generate"}</p>
                       </div>
                     </div>
                   </div>
@@ -507,8 +507,8 @@ export default function BidDetail() {
                     <div className="flex items-center gap-2">
                       {generateDeliveryMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <ClipboardList className="h-4 w-4 text-chart-4 shrink-0" />}
                       <div>
-                        <p className="text-xs font-semibold">Delivery Plan</p>
-                        <p className="text-[10px] text-muted-foreground">{bid.deliveryPlan ? "Regenerate" : "Generate"}</p>
+                        <p className="text-sm font-semibold">Delivery Plan</p>
+                        <p className="text-[13px] text-muted-foreground">{bid.deliveryPlan ? "Regenerate" : "Generate"}</p>
                       </div>
                     </div>
                   </div>
@@ -516,8 +516,8 @@ export default function BidDetail() {
                     <div className="flex items-center gap-2">
                       {generateResourceMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <Users className="h-4 w-4 text-chart-5 shrink-0" />}
                       <div>
-                        <p className="text-xs font-semibold">Resource Plan</p>
-                        <p className="text-[10px] text-muted-foreground">{bid.resourcePlan ? "Regenerate" : "Generate"}</p>
+                        <p className="text-sm font-semibold">Resource Plan</p>
+                        <p className="text-[13px] text-muted-foreground">{bid.resourcePlan ? "Regenerate" : "Generate"}</p>
                       </div>
                     </div>
                   </div>
@@ -546,13 +546,13 @@ export default function BidDetail() {
                   </div>
                   <div>
                     <CardTitle className="text-sm font-semibold">Executive Review</CardTitle>
-                    <p className="text-xs text-muted-foreground">Approve for submission or request revisions</p>
+                    <p className="text-sm text-muted-foreground">Approve for submission or request revisions</p>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 pt-0">
                 <div>
-                  <Label className="text-xs font-medium">Comments</Label>
+                  <Label className="text-sm font-medium">Comments</Label>
                   <Textarea
                     value={execComments}
                     onChange={(e) => setExecComments(e.target.value)}
@@ -613,13 +613,13 @@ export default function BidDetail() {
                 </div>
                 <div>
                   <CardTitle className="text-sm font-semibold">CARE Assessment</CardTitle>
-                  <p className="text-xs text-muted-foreground">AI-powered bid evaluation across 4 dimensions</p>
+                  <p className="text-sm text-muted-foreground">AI-powered bid evaluation across 4 dimensions</p>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4 pt-0">
               <div>
-                <Label className="text-xs font-medium">Custom Prompt (optional)</Label>
+                <Label className="text-sm font-medium">Custom Prompt (optional)</Label>
                 <Textarea
                   value={carePrompt}
                   onChange={(e) => setCarePrompt(e.target.value)}
@@ -645,19 +645,19 @@ export default function BidDetail() {
                     ].map((item) => (
                       <div key={item.label} className={`text-center p-4 rounded-xl border ${item.bg}`} data-testid={`care-${item.abbr.toLowerCase()}`}>
                         <div className={`text-2xl font-bold ${item.color}`}>{item.value?.toFixed(1) || "-"}</div>
-                        <div className="text-[10px] text-muted-foreground mt-1 font-medium">{item.label} ({item.abbr})</div>
+                        <div className="text-[13px] text-muted-foreground mt-1 font-medium">{item.label} ({item.abbr})</div>
                       </div>
                     ))}
                   </div>
                   {bid.careScore && (
                     <div className="text-center p-5 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/15">
                       <div className="text-3xl font-bold text-primary" data-testid="text-care-overall">{bid.careScore.toFixed(1)}<span className="text-lg font-medium text-muted-foreground">/10</span></div>
-                      <div className="text-xs text-muted-foreground mt-1 font-medium">Overall CARE Score</div>
+                      <div className="text-sm text-muted-foreground mt-1 font-medium">Overall CARE Score</div>
                     </div>
                   )}
                   {bid.careAnalysis && (
                     <div>
-                      <Label className="text-xs font-medium">Analysis</Label>
+                      <Label className="text-sm font-medium">Analysis</Label>
                       <div className="mt-1.5 p-4 rounded-xl bg-muted/30 border border-border/50 text-sm leading-relaxed whitespace-pre-wrap" data-testid="text-care-analysis">
                         {bid.careAnalysis}
                       </div>
@@ -783,18 +783,18 @@ export default function BidDetail() {
                         </div>
                         <div className="min-w-0 flex-1 pb-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-semibold">{log.action}</span>
+                            <span className="text-sm font-semibold">{log.action}</span>
                             {log.performedBy && (
-                              <Badge variant="outline" className="text-[9px] h-4 px-1.5">{log.performedBy}</Badge>
+                              <Badge variant="outline" className="text-[12px] h-4 px-1.5">{log.performedBy}</Badge>
                             )}
                           </div>
                           {log.fromStage && log.toStage && (
-                            <p className="text-[10px] text-muted-foreground mt-0.5">
+                            <p className="text-[13px] text-muted-foreground mt-0.5">
                               {getStageLabel(log.fromStage)} <ArrowRight className="h-2.5 w-2.5 inline mx-0.5" /> {getStageLabel(log.toStage)}
                             </p>
                           )}
-                          {log.notes && <p className="text-xs text-muted-foreground mt-1">{log.notes}</p>}
-                          <p className="text-[10px] text-muted-foreground/60 mt-1">
+                          {log.notes && <p className="text-sm text-muted-foreground mt-1">{log.notes}</p>}
+                          <p className="text-[13px] text-muted-foreground/60 mt-1">
                             {log.createdAt ? new Date(log.createdAt).toLocaleString() : ""}
                           </p>
                         </div>

@@ -543,9 +543,9 @@ function SmartJobPlanPreview({ data, title, onTitleChange, onUpload, isPending }
         <div className="flex items-center gap-2 mb-3">
           <Zap className="h-4 w-4 text-primary" />
           <span className="text-sm font-semibold">Smart Import Detected</span>
-          <Badge variant="secondary" className="text-[10px]">Time Plan + Pricing</Badge>
+          <Badge variant="secondary" className="text-[13px]">Time Plan + Pricing</Badge>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Found Time Plan sheet with {data.lines.length} resource lines across {milestoneNames.length} milestones,
           plus Pricing sheet with {data.pricingMilestones.length} milestone summaries.
           Weekly allocations will be imported automatically.
@@ -554,25 +554,25 @@ function SmartJobPlanPreview({ data, title, onTitleChange, onUpload, isPending }
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-muted/30 rounded-lg p-3 border">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-1">
             <Users className="h-3 w-3" /> Resources
           </div>
           <p className="text-lg font-semibold" data-testid="text-smart-resources">{data.lines.length}</p>
         </div>
         <div className="bg-muted/30 rounded-lg p-3 border">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-1">
             <ClipboardList className="h-3 w-3" /> Milestones
           </div>
           <p className="text-lg font-semibold" data-testid="text-smart-milestones">{milestoneNames.length}</p>
         </div>
         <div className="bg-muted/30 rounded-lg p-3 border">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-1">
             <Calendar className="h-3 w-3" /> Budget Hours
           </div>
           <p className="text-lg font-semibold" data-testid="text-smart-budget-hours">{Math.round(data.totalBudgetHours).toLocaleString()}</p>
         </div>
         <div className="bg-muted/30 rounded-lg p-3 border">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-1">
             <DollarSign className="h-3 w-3" /> Forecast Hours
           </div>
           <p className="text-lg font-semibold" data-testid="text-smart-forecast-hours">{Math.round(data.totalForecastHours).toLocaleString()}</p>
@@ -580,15 +580,15 @@ function SmartJobPlanPreview({ data, title, onTitleChange, onUpload, isPending }
       </div>
 
       <div className="bg-muted/30 rounded-lg p-4 space-y-3 border">
-        <div className="flex items-center gap-2 text-xs font-medium">
+        <div className="flex items-center gap-2 text-sm font-medium">
           <Info className="h-3.5 w-3.5 text-primary" />
           Job Plan Settings
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <Label className="text-[11px]">Plan Title</Label>
+            <Label className="text-[13px]">Plan Title</Label>
             <Input
-              className="h-8 text-xs mt-1"
+              className="h-8 text-sm mt-1"
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
               placeholder="Enter plan title"
@@ -596,28 +596,28 @@ function SmartJobPlanPreview({ data, title, onTitleChange, onUpload, isPending }
             />
           </div>
           <div>
-            <Label className="text-[11px]">Contract Start</Label>
+            <Label className="text-[13px]">Contract Start</Label>
             <Input
-              className="h-8 text-xs mt-1"
+              className="h-8 text-sm mt-1"
               value={data.meta.contractStartDate || "Not detected"}
               readOnly
               data-testid="input-derived-start"
             />
-            <p className="text-[10px] text-muted-foreground mt-0.5">From Time Plan metadata</p>
+            <p className="text-[13px] text-muted-foreground mt-0.5">From Time Plan metadata</p>
           </div>
           <div>
-            <Label className="text-[11px]">Forecast Date</Label>
+            <Label className="text-[13px]">Forecast Date</Label>
             <Input
-              className="h-8 text-xs mt-1"
+              className="h-8 text-sm mt-1"
               value={data.meta.forecastDate || "Not detected"}
               readOnly
               data-testid="input-derived-end"
             />
-            <p className="text-[10px] text-muted-foreground mt-0.5">From Time Plan metadata</p>
+            <p className="text-[13px] text-muted-foreground mt-0.5">From Time Plan metadata</p>
           </div>
         </div>
         {(data.meta.accountManager || data.meta.engagementManager) && (
-          <div className="flex gap-4 text-[10px] text-muted-foreground">
+          <div className="flex gap-4 text-[13px] text-muted-foreground">
             {data.meta.accountManager && <span>Account Manager: <span className="text-foreground">{data.meta.accountManager}</span></span>}
             {data.meta.engagementManager && <span>Engagement Manager: <span className="text-foreground">{data.meta.engagementManager}</span></span>}
             {data.meta.panel && <span>Panel: <span className="text-foreground">{data.meta.panel}</span></span>}
@@ -627,13 +627,13 @@ function SmartJobPlanPreview({ data, title, onTitleChange, onUpload, isPending }
 
       {data.pricingMilestones.length > 0 && (
         <div>
-          <p className="text-xs font-medium mb-2 flex items-center gap-1.5">
+          <p className="text-sm font-medium mb-2 flex items-center gap-1.5">
             <DollarSign className="h-3 w-3" />
             Pricing Summary ({data.pricingMilestones.length} milestones)
           </p>
           <div className="border rounded-lg overflow-hidden">
             <div className="overflow-x-auto max-h-48">
-              <table className="w-full text-xs">
+              <table className="w-full text-sm">
                 <thead className="bg-muted/50 sticky top-0">
                   <tr>
                     <th className="text-left p-2 font-medium text-muted-foreground">Milestone</th>
@@ -661,13 +661,13 @@ function SmartJobPlanPreview({ data, title, onTitleChange, onUpload, isPending }
       )}
 
       <div>
-        <p className="text-xs font-medium mb-2 flex items-center gap-1.5">
+        <p className="text-sm font-medium mb-2 flex items-center gap-1.5">
           <Users className="h-3 w-3" />
           Resource Lines ({data.lines.length} lines across {milestoneNames.length} milestones)
         </p>
         <div className="border rounded-lg overflow-hidden">
           <div className="overflow-x-auto max-h-64">
-            <table className="w-full text-xs">
+            <table className="w-full text-sm">
               <thead className="bg-muted/50 sticky top-0">
                 <tr>
                   <th className="text-left p-2 font-medium text-muted-foreground w-8">#</th>
@@ -695,7 +695,7 @@ function SmartJobPlanPreview({ data, title, onTitleChange, onUpload, isPending }
                     <td className="p-2 text-right">{Math.round(line.budgetHours)}</td>
                     <td className="p-2 text-right">{Math.round(line.forecastHours)}</td>
                     <td className="p-2 text-right">
-                      <Badge variant="secondary" className="text-[9px]">
+                      <Badge variant="secondary" className="text-[12px]">
                         {Object.keys(line.weeklyAllocations).length}w
                       </Badge>
                     </td>
@@ -705,7 +705,7 @@ function SmartJobPlanPreview({ data, title, onTitleChange, onUpload, isPending }
             </table>
           </div>
           {data.lines.length > 50 && (
-            <p className="text-xs text-muted-foreground p-2 bg-muted/30 text-center">
+            <p className="text-sm text-muted-foreground p-2 bg-muted/30 text-center">
               Showing first 50 of {data.lines.length} lines
             </p>
           )}
@@ -936,17 +936,17 @@ function UploadPanel({ type }: { type: UploadType }) {
           <p className="text-sm text-muted-foreground mb-1">
             {fileName ? `Selected: ${fileName}` : "Upload an Excel (.xlsx, .xls) or CSV file"}
           </p>
-          <p className="text-xs text-muted-foreground/60 mb-4">Supports .xlsx, .xls, .csv — headers are auto-detected</p>
+          <p className="text-sm text-muted-foreground/60 mb-4">Supports .xlsx, .xls, .csv — headers are auto-detected</p>
           <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv,.txt" className="hidden" onChange={handleFile} data-testid={`input-upload-file-${type}`} />
           <Button size="sm" variant="secondary" onClick={() => fileRef.current?.click()} data-testid={`button-browse-${type}`}>Browse Files</Button>
         </div>
 
         {sheetNames.length > 1 && (
           <div className="space-y-1.5">
-            <p className="text-xs font-medium">Select sheet to import:</p>
+            <p className="text-sm font-medium">Select sheet to import:</p>
             <div className="flex flex-wrap items-center gap-1.5">
               {sheetNames.map((name, i) => (
-                <Button key={name} size="sm" variant={i === selectedSheet ? "default" : "outline"} className="h-7 px-3 text-[11px]" onClick={() => switchSheet(i)} data-testid={`button-sheet-${i}`}>
+                <Button key={name} size="sm" variant={i === selectedSheet ? "default" : "outline"} className="h-7 px-3 text-[13px]" onClick={() => switchSheet(i)} data-testid={`button-sheet-${i}`}>
                   {name}
                 </Button>
               ))}
@@ -972,15 +972,15 @@ function UploadPanel({ type }: { type: UploadType }) {
         <p className="text-sm text-muted-foreground mb-1">
           {fileName ? `Selected: ${fileName}` : "Upload an Excel (.xlsx, .xls) or CSV file"}
         </p>
-        <p className="text-xs text-muted-foreground/60 mb-4">Supports .xlsx, .xls, .csv — headers are auto-detected</p>
+        <p className="text-sm text-muted-foreground/60 mb-4">Supports .xlsx, .xls, .csv — headers are auto-detected</p>
         <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv,.txt" className="hidden" onChange={handleFile} data-testid={`input-upload-file-${type}`} />
         <Button size="sm" variant="secondary" onClick={() => fileRef.current?.click()} data-testid={`button-browse-${type}`}>Browse Files</Button>
       </div>
 
       <div>
-        <p className="text-xs text-muted-foreground mb-1.5">Or paste CSV/tab-separated data:</p>
+        <p className="text-sm text-muted-foreground mb-1.5">Or paste CSV/tab-separated data:</p>
         <textarea
-          className="w-full h-24 text-xs font-mono border rounded-md p-2 bg-muted/30 resize-y"
+          className="w-full h-24 text-sm font-mono border rounded-md p-2 bg-muted/30 resize-y"
           placeholder={`Paste data here... e.g.\n${fields.map((f) => f.label).slice(0, 5).join("\t")}\nRow 1 data...`}
           onChange={(e) => handlePasteCSV(e.target.value)}
           data-testid={`textarea-paste-${type}`}
@@ -989,10 +989,10 @@ function UploadPanel({ type }: { type: UploadType }) {
 
       {sheetNames.length > 1 && (
         <div className="space-y-1.5">
-          <p className="text-xs font-medium">Select sheet to import:</p>
+          <p className="text-sm font-medium">Select sheet to import:</p>
           <div className="flex flex-wrap items-center gap-1.5">
             {sheetNames.map((name, i) => (
-              <Button key={name} size="sm" variant={i === selectedSheet ? "default" : "outline"} className="h-7 px-3 text-[11px]" onClick={() => switchSheet(i)} data-testid={`button-sheet-${i}`}>
+              <Button key={name} size="sm" variant={i === selectedSheet ? "default" : "outline"} className="h-7 px-3 text-[13px]" onClick={() => switchSheet(i)} data-testid={`button-sheet-${i}`}>
                 {name}
               </Button>
             ))}
@@ -1002,29 +1002,29 @@ function UploadPanel({ type }: { type: UploadType }) {
 
       {type === "job-plans" && parsedRows.length > 0 && !useSmartImport && (
         <div className="bg-muted/30 rounded-lg p-4 space-y-3 border">
-          <div className="flex items-center gap-2 text-xs font-medium">
+          <div className="flex items-center gap-2 text-sm font-medium">
             <Info className="h-3.5 w-3.5 text-primary" />
             Job Plan Settings
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <Label className="text-[11px]">Plan Title</Label>
-              <Input className="h-8 text-xs mt-1" value={jobPlanTitle} onChange={(e) => setJobPlanTitle(e.target.value)} placeholder={derivedTitle} data-testid="input-job-plan-title" />
-              <p className="text-[10px] text-muted-foreground mt-0.5">Leave blank to use filename</p>
+              <Label className="text-[13px]">Plan Title</Label>
+              <Input className="h-8 text-sm mt-1" value={jobPlanTitle} onChange={(e) => setJobPlanTitle(e.target.value)} placeholder={derivedTitle} data-testid="input-job-plan-title" />
+              <p className="text-[13px] text-muted-foreground mt-0.5">Leave blank to use filename</p>
             </div>
             <div>
-              <Label className="text-[11px]">Contract Start</Label>
-              <Input className="h-8 text-xs mt-1" value={derivedDates?.contractStartDate ? derivedDates.contractStartDate.toISOString().split("T")[0] : "Not detected"} readOnly data-testid="input-derived-start" />
+              <Label className="text-[13px]">Contract Start</Label>
+              <Input className="h-8 text-sm mt-1" value={derivedDates?.contractStartDate ? derivedDates.contractStartDate.toISOString().split("T")[0] : "Not detected"} readOnly data-testid="input-derived-start" />
             </div>
             <div>
-              <Label className="text-[11px]">Forecast End</Label>
-              <Input className="h-8 text-xs mt-1" value={derivedDates?.forecastDate ? derivedDates.forecastDate.toISOString().split("T")[0] : "Not detected"} readOnly data-testid="input-derived-end" />
+              <Label className="text-[13px]">Forecast End</Label>
+              <Input className="h-8 text-sm mt-1" value={derivedDates?.forecastDate ? derivedDates.forecastDate.toISOString().split("T")[0] : "Not detected"} readOnly data-testid="input-derived-end" />
             </div>
           </div>
         </div>
       )}
 
-      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+      <div className="flex items-center gap-4 text-sm text-muted-foreground">
         <span className="flex items-center gap-1">
           <span className="font-medium text-foreground">{matchedFields.length}</span>/{fields.length} fields matched
         </span>
@@ -1040,12 +1040,12 @@ function UploadPanel({ type }: { type: UploadType }) {
       </div>
 
       <div>
-        <p className="text-xs font-medium mb-2">Expected columns:</p>
+        <p className="text-sm font-medium mb-2">Expected columns:</p>
         <div className="flex flex-wrap gap-1.5">
           {fields.map((f) => {
             const matched = rawHeaders.includes(f.key);
             return (
-              <Badge key={f.key} variant={matched ? "default" : "outline"} className={`text-[10px] ${matched ? "" : "opacity-50"}`} data-testid={`badge-field-${f.key}`}>
+              <Badge key={f.key} variant={matched ? "default" : "outline"} className={`text-[13px] ${matched ? "" : "opacity-50"}`} data-testid={`badge-field-${f.key}`}>
                 {matched && <CheckCircle className="h-2.5 w-2.5 mr-1" />}
                 {f.label}{f.required ? " *" : ""}
               </Badge>
@@ -1057,7 +1057,7 @@ function UploadPanel({ type }: { type: UploadType }) {
       {parsedRows.length > 0 && (
         <div className="border rounded-lg overflow-hidden">
           <div className="overflow-x-auto max-h-64">
-            <table className="w-full text-xs">
+            <table className="w-full text-sm">
               <thead className="bg-muted/50 sticky top-0">
                 <tr>
                   <th className="text-left p-2 font-medium text-muted-foreground w-8">#</th>
@@ -1082,7 +1082,7 @@ function UploadPanel({ type }: { type: UploadType }) {
             </table>
           </div>
           {parsedRows.length > 50 && (
-            <p className="text-xs text-muted-foreground p-2 bg-muted/30 text-center">
+            <p className="text-sm text-muted-foreground p-2 bg-muted/30 text-center">
               Showing first 50 of {parsedRows.length} rows
             </p>
           )}
@@ -1124,15 +1124,15 @@ export default function DataUpload() {
         <CardContent>
           <Tabs defaultValue="opportunities">
             <TabsList className="w-full grid grid-cols-3">
-              <TabsTrigger value="opportunities" className="text-xs" data-testid="tab-upload-opportunities">
+              <TabsTrigger value="opportunities" className="text-sm" data-testid="tab-upload-opportunities">
                 <Target className="h-3.5 w-3.5 mr-1.5" />
                 Opportunities
               </TabsTrigger>
-              <TabsTrigger value="bids" className="text-xs" data-testid="tab-upload-bids">
+              <TabsTrigger value="bids" className="text-sm" data-testid="tab-upload-bids">
                 <FileText className="h-3.5 w-3.5 mr-1.5" />
                 Bids
               </TabsTrigger>
-              <TabsTrigger value="job-plans" className="text-xs" data-testid="tab-upload-job-plans">
+              <TabsTrigger value="job-plans" className="text-sm" data-testid="tab-upload-job-plans">
                 <ClipboardList className="h-3.5 w-3.5 mr-1.5" />
                 Job Plans
               </TabsTrigger>

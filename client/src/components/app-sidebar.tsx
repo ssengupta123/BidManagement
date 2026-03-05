@@ -38,7 +38,7 @@ export function AppSidebar() {
       <SidebarHeader className="px-5 py-5">
         <div className="flex items-center gap-3">
           <img src={logoPath} alt="Reason Group" className="h-10 w-auto object-contain" />
-          <h2 className="text-xs font-semibold tracking-wide uppercase text-sidebar-foreground/60 leading-tight" data-testid="text-app-title">Bid<br />Management</h2>
+          <h2 className="text-sm font-semibold tracking-wide uppercase text-sidebar-foreground/60 leading-tight" data-testid="text-app-title">Bid<br />Management</h2>
         </div>
       </SidebarHeader>
       <SidebarContent className="px-3">
@@ -49,11 +49,11 @@ export function AppSidebar() {
                 const isActive = location === item.url || (item.url !== "/" && location.startsWith(item.url));
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild data-active={isActive} className="h-11 rounded-lg px-3">
+                    <SidebarMenuButton asChild data-active={isActive} className="h-12 rounded-lg px-3">
                       <Link href={item.url} data-testid={`link-nav-${item.title.toLowerCase()}`}>
-                        <item.icon className="h-[18px] w-[18px]" />
+                        <item.icon className="h-5 w-5" />
                         <div className="flex-1 min-w-0">
-                          <span className="text-sm font-medium">{item.title}</span>
+                          <span className="text-[15px] font-medium">{item.title}</span>
                         </div>
                         {isActive && <ChevronRight className="h-3.5 w-3.5 opacity-50" />}
                       </Link>

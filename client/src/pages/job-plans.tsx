@@ -150,13 +150,13 @@ export default function JobPlans() {
                           <h3 className="text-sm font-semibold truncate" data-testid={`text-job-plan-title-${plan.id}`}>{plan.title}</h3>
                           <div className="flex items-center gap-3 mt-1 flex-wrap">
                             {plan.contractStartDate && (
-                              <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                              <span className="text-[13px] text-muted-foreground flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
                                 {new Date(plan.contractStartDate).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                               </span>
                             )}
                             {linkedBid && (
-                              <Badge variant="secondary" className="text-[10px]">{linkedBid.title}</Badge>
+                              <Badge variant="secondary" className="text-[13px]">{linkedBid.title}</Badge>
                             )}
                           </div>
                         </div>

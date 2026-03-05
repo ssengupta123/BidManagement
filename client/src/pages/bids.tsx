@@ -169,9 +169,9 @@ function UploadDialog() {
           </div>
 
           <div>
-            <p className="text-xs text-muted-foreground mb-1.5">Or paste CSV data directly:</p>
+            <p className="text-sm text-muted-foreground mb-1.5">Or paste CSV data directly:</p>
             <textarea
-              className="w-full h-24 text-xs font-mono p-2 border rounded-md bg-muted/30 resize-none"
+              className="w-full h-24 text-sm font-mono p-2 border rounded-md bg-muted/30 resize-none"
               placeholder="title,stage,opportunityId&#10;My First Bid,cas_qualification,1&#10;Another Bid,writing,2"
               value={rawText}
               onChange={(e) => handlePaste(e.target.value)}
@@ -179,7 +179,7 @@ function UploadDialog() {
             />
           </div>
 
-          <div className="bg-muted/30 rounded-md p-3 text-xs text-muted-foreground space-y-1">
+          <div className="bg-muted/30 rounded-md p-3 text-sm text-muted-foreground space-y-1">
             <p className="font-medium text-foreground">Expected columns:</p>
             <p><strong>title</strong> (required) — Bid title or name</p>
             <p><strong>opportunityId</strong> — Link to opportunity ID</p>
@@ -190,7 +190,7 @@ function UploadDialog() {
             <div>
               <p className="text-sm font-medium mb-2">Preview ({parsedData.length} bids)</p>
               <div className="border rounded-md overflow-auto max-h-48">
-                <table className="w-full text-xs">
+                <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-muted/30 border-b">
                       <th className="text-left p-2 font-medium">#</th>
@@ -205,7 +205,7 @@ function UploadDialog() {
                         <td className="p-2 text-muted-foreground">{i + 1}</td>
                         <td className="p-2 font-medium" data-testid={`preview-title-${i}`}>{row.title}</td>
                         <td className="p-2">
-                          <Badge variant="outline" className="text-[9px]">{row.stage || "cas_qualification"}</Badge>
+                          <Badge variant="outline" className="text-[12px]">{row.stage || "cas_qualification"}</Badge>
                         </td>
                         <td className="p-2 text-muted-foreground">{row.opportunityId || "—"}</td>
                       </tr>
@@ -217,7 +217,7 @@ function UploadDialog() {
           )}
 
           {parsedData.some((r) => !r.title) && (
-            <div className="flex items-center gap-2 text-xs text-destructive">
+            <div className="flex items-center gap-2 text-sm text-destructive">
               <AlertCircle className="h-3.5 w-3.5" />
               Some rows are missing a title and will be skipped
             </div>
@@ -271,12 +271,12 @@ export default function Bids() {
         </div>
         <Tabs value={stageFilter} onValueChange={setStageFilter}>
           <TabsList className="h-10">
-            <TabsTrigger value="all" data-testid="tab-all" className="text-xs">All</TabsTrigger>
-            <TabsTrigger value="cas_qualification" data-testid="tab-cas" className="text-xs">CAS</TabsTrigger>
-            <TabsTrigger value="csd_qualification" data-testid="tab-csd" className="text-xs">CSD</TabsTrigger>
-            <TabsTrigger value="writing" data-testid="tab-writing" className="text-xs">Writing</TabsTrigger>
-            <TabsTrigger value="executive_review" data-testid="tab-review" className="text-xs">Review</TabsTrigger>
-            <TabsTrigger value="approved" data-testid="tab-approved" className="text-xs">Approved</TabsTrigger>
+            <TabsTrigger value="all" data-testid="tab-all" className="text-sm">All</TabsTrigger>
+            <TabsTrigger value="cas_qualification" data-testid="tab-cas" className="text-sm">CAS</TabsTrigger>
+            <TabsTrigger value="csd_qualification" data-testid="tab-csd" className="text-sm">CSD</TabsTrigger>
+            <TabsTrigger value="writing" data-testid="tab-writing" className="text-sm">Writing</TabsTrigger>
+            <TabsTrigger value="executive_review" data-testid="tab-review" className="text-sm">Review</TabsTrigger>
+            <TabsTrigger value="approved" data-testid="tab-approved" className="text-sm">Approved</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -314,8 +314,8 @@ export default function Bids() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold text-sm group-hover:text-primary transition-colors" data-testid={`text-bid-title-${bid.id}`}>{bid.title}</h3>
                         </div>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
-                          <Badge variant="outline" className={`text-[10px] font-medium border ${getStageColor(bid.stage)}`} data-testid={`badge-stage-${bid.id}`}>
+                        <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground flex-wrap">
+                          <Badge variant="outline" className={`text-[13px] font-medium border ${getStageColor(bid.stage)}`} data-testid={`badge-stage-${bid.id}`}>
                             {getStageLabel(bid.stage)}
                           </Badge>
                           {bid.careScore && (

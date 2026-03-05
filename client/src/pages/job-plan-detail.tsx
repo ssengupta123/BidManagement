@@ -297,19 +297,19 @@ export default function JobPlanDetail() {
           </Button>
         </Link>
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-bold tracking-tight truncate" data-testid="text-plan-title">{plan.title}</h1>
+          <h1 className="text-2xl font-bold tracking-tight truncate" data-testid="text-plan-title">{plan.title}</h1>
           <div className="flex items-center gap-3 mt-1 flex-wrap">
             {plan.contractStartDate && (
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <span className="text-sm text-muted-foreground flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
                 Start: {new Date(plan.contractStartDate).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}
               </span>
             )}
-            <Badge variant="outline" className="text-[10px]">{lines?.length || 0} resource lines</Badge>
+            <Badge variant="outline" className="text-[13px]">{lines?.length || 0} resource lines</Badge>
             <div className="flex items-center gap-1.5">
               <MapPin className="h-3 w-3 text-muted-foreground" />
               <Select value={projectState} onValueChange={setProjectState}>
-                <SelectTrigger className="h-6 w-[110px] text-[10px] border-dashed" data-testid="select-project-state">
+                <SelectTrigger className="h-6 w-[110px] text-[13px] border-dashed" data-testid="select-project-state">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -328,9 +328,9 @@ export default function JobPlanDetail() {
               <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <DollarSign className="h-4 w-4 text-primary" />
               </div>
-              <span className="text-[11px] text-muted-foreground font-medium">Forecast Revenue</span>
+              <span className="text-[13px] text-muted-foreground font-medium">Forecast Revenue</span>
             </div>
-            <p className="text-lg font-bold" data-testid="text-forecast-revenue">{formatCurrency(totals.forecastDollars)}</p>
+            <p className="text-xl font-bold" data-testid="text-forecast-revenue">{formatCurrency(totals.forecastDollars)}</p>
           </CardContent>
         </Card>
         <Card>
@@ -339,9 +339,9 @@ export default function JobPlanDetail() {
               <div className="h-8 w-8 rounded-lg bg-chart-2/10 flex items-center justify-center">
                 <TrendingUp className="h-4 w-4 text-chart-2" />
               </div>
-              <span className="text-[11px] text-muted-foreground font-medium">Gross Margin</span>
+              <span className="text-[13px] text-muted-foreground font-medium">Gross Margin</span>
             </div>
-            <p className={`text-lg font-bold ${totals.grossMargin >= 40 ? "text-chart-2" : totals.grossMargin >= 25 ? "text-chart-4" : "text-destructive"}`} data-testid="text-gross-margin">
+            <p className={`text-xl font-bold ${totals.grossMargin >= 40 ? "text-chart-2" : totals.grossMargin >= 25 ? "text-chart-4" : "text-destructive"}`} data-testid="text-gross-margin">
               {totals.grossMargin.toFixed(1)}%
             </p>
           </CardContent>
@@ -352,9 +352,9 @@ export default function JobPlanDetail() {
               <div className="h-8 w-8 rounded-lg bg-chart-4/10 flex items-center justify-center">
                 <Clock className="h-4 w-4 text-chart-4" />
               </div>
-              <span className="text-[11px] text-muted-foreground font-medium">Forecast Hours</span>
+              <span className="text-[13px] text-muted-foreground font-medium">Forecast Hours</span>
             </div>
-            <p className="text-lg font-bold" data-testid="text-forecast-hours">{totals.totalForecastHours.toLocaleString()}</p>
+            <p className="text-xl font-bold" data-testid="text-forecast-hours">{totals.totalForecastHours.toLocaleString()}</p>
           </CardContent>
         </Card>
         <Card>
@@ -363,9 +363,9 @@ export default function JobPlanDetail() {
               <div className="h-8 w-8 rounded-lg bg-chart-5/10 flex items-center justify-center">
                 <BarChart3 className="h-4 w-4 text-chart-5" />
               </div>
-              <span className="text-[11px] text-muted-foreground font-medium">Budget Variance</span>
+              <span className="text-[13px] text-muted-foreground font-medium">Budget Variance</span>
             </div>
-            <p className={`text-lg font-bold ${totals.variance >= 0 ? "text-chart-2" : "text-destructive"}`} data-testid="text-variance">
+            <p className={`text-xl font-bold ${totals.variance >= 0 ? "text-chart-2" : "text-destructive"}`} data-testid="text-variance">
               {formatCurrency(totals.variance)}
             </p>
           </CardContent>
@@ -380,7 +380,7 @@ export default function JobPlanDetail() {
               <Button
                 size="sm"
                 variant="outline"
-                className="h-7 px-2 text-[10px]"
+                className="h-7 px-2 text-[13px]"
                 onClick={() => {
                   const all: Record<string, boolean> = {};
                   Object.keys(milestoneGroups).forEach((ms) => { all[ms] = false; });
@@ -394,7 +394,7 @@ export default function JobPlanDetail() {
               <Button
                 size="sm"
                 variant="outline"
-                className="h-7 px-2 text-[10px]"
+                className="h-7 px-2 text-[13px]"
                 onClick={() => setExpandedMilestones({})}
                 data-testid="button-expand-all"
               >
@@ -407,7 +407,7 @@ export default function JobPlanDetail() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-xs" data-testid="table-resource-lines">
+            <table className="w-full text-sm" data-testid="table-resource-lines">
               <thead>
                 <tr className="border-b bg-muted/30">
                   <th className="text-left p-2 pl-4 font-medium text-muted-foreground w-[200px] sticky left-0 bg-muted/30 z-10">Resource</th>
@@ -530,7 +530,7 @@ function MilestoneGroup({
             {isRenaming ? (
               <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                 <Input
-                  className="h-6 text-xs w-48"
+                  className="h-6 text-sm w-48"
                   value={renameValue}
                   onChange={(e) => setRenameValue(e.target.value)}
                   onKeyDown={(e) => {
@@ -556,7 +556,7 @@ function MilestoneGroup({
             ) : (
               <>
                 <span className="truncate">{milestone}</span>
-                <Badge variant="secondary" className="text-[9px] ml-1">{lines.length}</Badge>
+                <Badge variant="secondary" className="text-[12px] ml-1">{lines.length}</Badge>
               </>
             )}
           </div>
@@ -570,7 +570,7 @@ function MilestoneGroup({
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 px-2 text-[10px]"
+              className="h-6 px-2 text-[13px]"
               onClick={() => onAddLine()}
               data-testid={`button-add-line-${milestone}`}
             >
@@ -587,9 +587,9 @@ function MilestoneGroup({
             </Button>
             {confirmDelete ? (
               <div className="flex items-center gap-1">
-                <span className="text-[10px] text-destructive whitespace-nowrap">Delete {lines.length} line{lines.length !== 1 ? "s" : ""}?</span>
-                <Button size="sm" variant="destructive" className="h-6 px-1.5 text-[10px]" onClick={() => { onDeleteMilestone(milestone); setConfirmDelete(false); }} data-testid={`button-confirm-delete-milestone-${milestone}`}>Yes</Button>
-                <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[10px]" onClick={() => setConfirmDelete(false)}>No</Button>
+                <span className="text-[13px] text-destructive whitespace-nowrap">Delete {lines.length} line{lines.length !== 1 ? "s" : ""}?</span>
+                <Button size="sm" variant="destructive" className="h-6 px-1.5 text-[13px]" onClick={() => { onDeleteMilestone(milestone); setConfirmDelete(false); }} data-testid={`button-confirm-delete-milestone-${milestone}`}>Yes</Button>
+                <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[13px]" onClick={() => setConfirmDelete(false)}>No</Button>
               </div>
             ) : (
               <Button
@@ -674,36 +674,36 @@ function LineRow({
       <>
         <tr className="border-b bg-primary/5" data-testid={`row-line-edit-${line.id}`}>
           <td className="p-1.5 pl-8 sticky left-0 bg-primary/5 z-10">
-            <Input className="h-7 text-xs" value={editData.resource || ""} onChange={(e) => onEditChange({ ...editData, resource: e.target.value })} placeholder="Name" />
+            <Input className="h-7 text-sm" value={editData.resource || ""} onChange={(e) => onEditChange({ ...editData, resource: e.target.value })} placeholder="Name" />
           </td>
           <td className="p-1.5">
             <Select value={editData.chargeOutLevel || ""} onValueChange={(v) => onEditChange({ ...editData, chargeOutLevel: v })}>
-              <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-7 text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {CHARGE_LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
               </SelectContent>
             </Select>
           </td>
           <td className="p-1.5">
-            <Input className="h-7 text-xs" value={editData.jobRole || ""} onChange={(e) => onEditChange({ ...editData, jobRole: e.target.value })} placeholder="Role" />
+            <Input className="h-7 text-sm" value={editData.jobRole || ""} onChange={(e) => onEditChange({ ...editData, jobRole: e.target.value })} placeholder="Role" />
           </td>
           <td className="p-1.5">
-            <Input className="h-7 text-xs text-right" type="number" value={editData.panelHourlyRate || 0} onChange={(e) => onEditChange({ ...editData, panelHourlyRate: parseFloat(e.target.value) || 0 })} />
+            <Input className="h-7 text-sm text-right" type="number" value={editData.panelHourlyRate || 0} onChange={(e) => onEditChange({ ...editData, panelHourlyRate: parseFloat(e.target.value) || 0 })} />
           </td>
           <td className="p-1.5">
-            <Input className="h-7 text-xs text-right" type="number" value={editData.discountPercent || 0} onChange={(e) => onEditChange({ ...editData, discountPercent: parseFloat(e.target.value) || 0 })} />
+            <Input className="h-7 text-sm text-right" type="number" value={editData.discountPercent || 0} onChange={(e) => onEditChange({ ...editData, discountPercent: parseFloat(e.target.value) || 0 })} />
           </td>
           <td className="p-1.5 text-right text-muted-foreground">
             ${((editData.panelHourlyRate || 0) * (1 - (editData.discountPercent || 0) / 100)).toFixed(2)}
           </td>
           <td className="p-1.5">
-            <Input className="h-7 text-xs text-right" type="number" value={editData.hourlyGrossCost || 0} onChange={(e) => onEditChange({ ...editData, hourlyGrossCost: parseFloat(e.target.value) || 0 })} />
+            <Input className="h-7 text-sm text-right" type="number" value={editData.hourlyGrossCost || 0} onChange={(e) => onEditChange({ ...editData, hourlyGrossCost: parseFloat(e.target.value) || 0 })} />
           </td>
           <td className="p-1.5">
-            <Input className="h-7 text-xs text-right" type="number" value={editData.budgetHours || 0} onChange={(e) => onEditChange({ ...editData, budgetHours: parseFloat(e.target.value) || 0 })} />
+            <Input className="h-7 text-sm text-right" type="number" value={editData.budgetHours || 0} onChange={(e) => onEditChange({ ...editData, budgetHours: parseFloat(e.target.value) || 0 })} />
           </td>
           <td className="p-1.5">
-            <Input className="h-7 text-xs text-right" type="number" value={editData.forecastHours || 0} onChange={(e) => onEditChange({ ...editData, forecastHours: parseFloat(e.target.value) || 0 })} />
+            <Input className="h-7 text-sm text-right" type="number" value={editData.forecastHours || 0} onChange={(e) => onEditChange({ ...editData, forecastHours: parseFloat(e.target.value) || 0 })} />
           </td>
           <td className="p-1.5 text-right text-muted-foreground">
             {formatCurrency((editData.forecastHours || 0) * ((editData.panelHourlyRate || 0) * (1 - (editData.discountPercent || 0) / 100)))}
@@ -711,8 +711,8 @@ function LineRow({
           <td className="p-1.5"></td>
           <td className="p-1.5">
             <div className="flex gap-1">
-              <Button size="sm" variant="default" className="h-6 px-2 text-[10px]" onClick={onSaveEdit}><Save className="h-3 w-3" /></Button>
-              <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px]" onClick={onCancelEdit}>Cancel</Button>
+              <Button size="sm" variant="default" className="h-6 px-2 text-[13px]" onClick={onSaveEdit}><Save className="h-3 w-3" /></Button>
+              <Button size="sm" variant="ghost" className="h-6 px-2 text-[13px]" onClick={onCancelEdit}>Cancel</Button>
             </div>
           </td>
         </tr>
@@ -729,7 +729,7 @@ function LineRow({
               {line.resource || <span className="text-muted-foreground italic">Click to set</span>}
             </span>
           </div>
-          {line.deliverable && <p className="text-[10px] text-muted-foreground truncate mt-0.5">{line.deliverable}</p>}
+          {line.deliverable && <p className="text-[13px] text-muted-foreground truncate mt-0.5">{line.deliverable}</p>}
           <div
             className="flex items-center gap-1.5 mt-1 cursor-pointer group/alloc"
             onClick={onToggleAlloc}
@@ -737,12 +737,12 @@ function LineRow({
           >
             <Calendar className="h-2.5 w-2.5 text-muted-foreground/60 shrink-0" />
             {allocSummary ? (
-              <span className="text-[10px] text-primary/80 group-hover/alloc:text-primary transition-colors">
+              <span className="text-[13px] text-primary/80 group-hover/alloc:text-primary transition-colors">
                 {allocSummary.from} → {allocSummary.to}
                 <span className="text-muted-foreground ml-1">({allocSummary.weeks}w @ {allocSummary.avgPct}%)</span>
               </span>
             ) : (
-              <span className="text-[10px] text-muted-foreground/50 group-hover/alloc:text-primary transition-colors">
+              <span className="text-[13px] text-muted-foreground/50 group-hover/alloc:text-primary transition-colors">
                 Set allocation...
               </span>
             )}
@@ -762,7 +762,7 @@ function LineRow({
         </td>
         <td className="p-2">
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[10px]" onClick={onStartEdit} data-testid={`button-edit-line-${line.id}`}>
+            <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[13px]" onClick={onStartEdit} data-testid={`button-edit-line-${line.id}`}>
               Edit
             </Button>
             <Button size="sm" variant="ghost" className="h-6 px-1.5 text-destructive" onClick={onDelete} data-testid={`button-delete-line-${line.id}`}>
@@ -893,7 +893,7 @@ function AllocationGrid({
                   <th
                     key={`${g.month}-${g.startIdx}`}
                     colSpan={g.count}
-                    className="text-[9px] font-semibold text-foreground/70 tracking-wide text-left px-0 pb-0.5 border-l border-border/30 first:border-l-0 pl-1"
+                    className="text-[12px] font-semibold text-foreground/70 tracking-wide text-left px-0 pb-0.5 border-l border-border/30 first:border-l-0 pl-1"
                   >
                     {g.month}
                   </th>
@@ -908,7 +908,7 @@ function AllocationGrid({
                   return (
                     <th
                       key={i}
-                      className={`text-[8px] font-normal px-0 pb-0.5 w-10 text-center ${hasHoliday ? "text-amber-600 dark:text-amber-400 font-bold" : "text-muted-foreground/60"} ${isFirstOfMonth && i !== 0 ? "border-l border-border/30" : ""}`}
+                      className={`text-[13px] font-normal px-0 pb-0.5 w-12 text-center ${hasHoliday ? "text-amber-600 dark:text-amber-400 font-bold" : "text-muted-foreground/60"} ${isFirstOfMonth && i !== 0 ? "border-l border-border/30" : ""}`}
                     >
                       {day}{hasHoliday ? "*" : ""}
                     </th>
@@ -960,7 +960,7 @@ function AllocationGrid({
                         <TooltipTrigger asChild>
                           <div
                             style={cellStyle}
-                            className={`w-10 h-7 text-[9px] font-semibold flex items-center justify-center cursor-crosshair transition-colors rounded-[2px] border border-border/20 ${cellText} ${cellExtra} ${inDrag ? "ring-2 ring-primary/50 ring-inset" : ""}`}
+                            className={`w-12 h-8 text-[12px] font-semibold flex items-center justify-center cursor-crosshair transition-colors rounded-[2px] border border-border/20 ${cellText} ${cellExtra} ${inDrag ? "ring-2 ring-primary/50 ring-inset" : ""}`}
                             onMouseDown={(e) => {
                               e.preventDefault();
                               if (e.button === 2) return;
@@ -977,7 +977,7 @@ function AllocationGrid({
                             {val > 0 ? `${val}%` : ""}
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="text-xs max-w-[200px]">
+                        <TooltipContent side="top" className="text-sm max-w-[200px]">
                           <p className="font-semibold">W{i + 1}: {w.toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}</p>
                           <p>Allocation: {val}%</p>
                           {hasHoliday && (
@@ -1006,7 +1006,7 @@ function AllocationGrid({
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="text-xs">
+                      <TooltipContent side="right" className="text-sm">
                         Clear all ({allocCount} weeks)
                       </TooltipContent>
                     </Tooltip>
@@ -1017,13 +1017,13 @@ function AllocationGrid({
           </table>
         </TooltipProvider>
       </div>
-      <div className="flex items-center gap-3 text-[9px] text-muted-foreground pt-1 flex-wrap">
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }} /> 100%</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #10b981 0%, #34d399 100%)" }} /> 80%</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%)" }} /> 50%</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #7dd3fc 0%, #bae6fd 100%)" }} /> 20%</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)" }} /> Over limit</span>
-        <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">* = public holiday (capped)</span>
+      <div className="flex items-center gap-4 text-[12px] text-muted-foreground pt-1.5 flex-wrap">
+        <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded-sm" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }} /> 100%</span>
+        <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded-sm" style={{ background: "linear-gradient(135deg, #10b981 0%, #34d399 100%)" }} /> 80%</span>
+        <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded-sm" style={{ background: "linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%)" }} /> 50%</span>
+        <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded-sm" style={{ background: "linear-gradient(135deg, #7dd3fc 0%, #bae6fd 100%)" }} /> 20%</span>
+        <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded-sm" style={{ background: "linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)" }} /> Over limit</span>
+        <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">* = public holiday (capped)</span>
         <span className="text-muted-foreground/70">Click to cycle · Drag to fill · Right-click to clear</span>
       </div>
     </div>

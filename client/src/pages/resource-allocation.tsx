@@ -135,7 +135,7 @@ export default function ResourceAllocation() {
         </div>
         <div className="flex items-center gap-2">
           <Select value={String(numWeeks)} onValueChange={(v) => setNumWeeks(Number(v))}>
-            <SelectTrigger className="w-[130px] h-8 text-xs" data-testid="select-weeks-range">
+            <SelectTrigger className="w-[130px] h-8 text-sm" data-testid="select-weeks-range">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -165,9 +165,9 @@ export default function ResourceAllocation() {
               <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Users className="h-4 w-4 text-primary" />
               </div>
-              <span className="text-[11px] text-muted-foreground font-medium">Total Resources</span>
+              <span className="text-[13px] text-muted-foreground font-medium">Total Resources</span>
             </div>
-            <p className="text-lg font-bold" data-testid="text-total-resources">{resources.length}</p>
+            <p className="text-xl font-bold" data-testid="text-total-resources">{resources.length}</p>
           </CardContent>
         </Card>
         <Card>
@@ -180,9 +180,9 @@ export default function ResourceAllocation() {
                   <CheckCircle className="h-4 w-4 text-chart-2" />
                 )}
               </div>
-              <span className="text-[11px] text-muted-foreground font-medium">Overallocated</span>
+              <span className="text-[13px] text-muted-foreground font-medium">Overallocated</span>
             </div>
-            <p className={`text-lg font-bold ${totalOverallocated > 0 ? "text-destructive" : "text-chart-2"}`} data-testid="text-overallocated">
+            <p className={`text-xl font-bold ${totalOverallocated > 0 ? "text-destructive" : "text-chart-2"}`} data-testid="text-overallocated">
               {totalOverallocated > 0 ? `${totalOverallocated} resource${totalOverallocated > 1 ? "s" : ""}` : "None"}
             </p>
           </CardContent>
@@ -193,9 +193,9 @@ export default function ResourceAllocation() {
               <div className="h-8 w-8 rounded-lg bg-chart-4/10 flex items-center justify-center">
                 <Calendar className="h-4 w-4 text-chart-4" />
               </div>
-              <span className="text-[11px] text-muted-foreground font-medium">Time Horizon</span>
+              <span className="text-[13px] text-muted-foreground font-medium">Time Horizon</span>
             </div>
-            <p className="text-lg font-bold" data-testid="text-time-horizon">{numWeeks} weeks</p>
+            <p className="text-xl font-bold" data-testid="text-time-horizon">{numWeeks} weeks</p>
           </CardContent>
         </Card>
       </div>
@@ -216,7 +216,7 @@ export default function ResourceAllocation() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <table className="w-full text-xs" data-testid="table-resource-allocation">
+              <table className="w-full text-sm" data-testid="table-resource-allocation">
                 <thead>
                   <tr className="border-b bg-muted/30">
                     <th className="text-left p-2 pl-4 font-medium text-muted-foreground w-[200px] sticky left-0 bg-muted/30 z-10">Resource</th>
@@ -225,13 +225,13 @@ export default function ResourceAllocation() {
                     {weeks.map((w, i) => {
                       const isMonthStart = w.getDate() <= 7;
                       return (
-                        <th key={i} className={`p-0.5 font-normal text-center w-[36px] ${isMonthStart ? "border-l border-border/60" : ""}`}>
+                        <th key={i} className={`p-0.5 font-normal text-center w-[40px] ${isMonthStart ? "border-l border-border/60" : ""}`}>
                           {isMonthStart && (
-                            <div className="text-[8px] text-muted-foreground font-semibold">
+                            <div className="text-[11px] text-muted-foreground font-semibold">
                               {w.toLocaleDateString("en-AU", { month: "short" })}
                             </div>
                           )}
-                          <div className="text-[7px] text-muted-foreground/50">W{i + 1}</div>
+                          <div className="text-[10px] text-muted-foreground/50">W{i + 1}</div>
                         </th>
                       );
                     })}
@@ -257,12 +257,12 @@ export default function ResourceAllocation() {
         </Card>
       )}
 
-      <div className="flex items-center gap-4 text-[10px] text-muted-foreground px-1 flex-wrap">
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #7dd3fc 0%, #bae6fd 100%)" }} /> ≤50%</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%)" }} /> 51–79%</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #10b981 0%, #34d399 100%)" }} /> 80–99%</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }} /> 100%</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)" }} /> &gt;100% (overallocated)</span>
+      <div className="flex items-center gap-5 text-[13px] text-muted-foreground px-1 flex-wrap">
+        <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded-sm" style={{ background: "linear-gradient(135deg, #7dd3fc 0%, #bae6fd 100%)" }} /> ≤50%</span>
+        <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded-sm" style={{ background: "linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%)" }} /> 51–79%</span>
+        <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded-sm" style={{ background: "linear-gradient(135deg, #10b981 0%, #34d399 100%)" }} /> 80–99%</span>
+        <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded-sm" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }} /> 100%</span>
+        <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded-sm" style={{ background: "linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)" }} /> &gt;100% (overallocated)</span>
       </div>
     </div>
   );
@@ -286,7 +286,7 @@ function ResourceRow({
             {isExpanded ? <ChevronDown className="h-3 w-3 shrink-0" /> : <ChevronRight className="h-3 w-3 shrink-0" />}
             <div className="min-w-0">
               <span className="font-medium truncate block" data-testid={`text-resource-name-${resource.name}`}>{resource.name}</span>
-              <span className="text-[9px] text-muted-foreground">
+              <span className="text-[12px] text-muted-foreground">
                 {resource.totalForecastHours.toLocaleString()}h across {resource.plans.size} plan{resource.plans.size > 1 ? "s" : ""}
               </span>
             </div>
@@ -295,11 +295,11 @@ function ResourceRow({
         <td className="p-2 text-muted-foreground">{resource.chargeOutLevel}</td>
         <td className="p-2 text-center">
           {hasOveralloc ? (
-            <Badge variant="destructive" className="text-[9px] h-4 px-1.5" data-testid={`badge-overalloc-${resource.name}`}>
+            <Badge variant="destructive" className="text-[12px] h-5 px-2" data-testid={`badge-overalloc-${resource.name}`}>
               {resource.overallocatedWeeks}w over
             </Badge>
           ) : (
-            <Badge variant="secondary" className="text-[9px] h-4 px-1.5 bg-chart-2/10 text-chart-2 border-chart-2/20">OK</Badge>
+            <Badge variant="secondary" className="text-[12px] h-5 px-2 bg-chart-2/10 text-chart-2 border-chart-2/20">OK</Badge>
           )}
         </td>
         {weeks.map((w, i) => {
@@ -335,7 +335,7 @@ function ResourceRow({
             >
               <div
                 style={cellStyle}
-                className={`h-6 flex items-center justify-center text-[8px] ${textClass} mx-px rounded-sm border border-border/10`}
+                className={`h-7 flex items-center justify-center text-[11px] font-medium ${textClass} mx-px rounded-sm border border-border/10`}
                 data-testid={`alloc-${resource.name}-${i}`}
               >
                 {totalPct > 0 ? totalPct : ""}
@@ -348,7 +348,7 @@ function ResourceRow({
         <tr className="border-b">
           <td colSpan={3 + weeks.length} className="p-0">
             <div className="bg-muted/10 px-4 py-2 pl-10 space-y-1">
-              <p className="text-[10px] font-semibold text-muted-foreground mb-1">Allocation breakdown:</p>
+              <p className="text-[13px] font-semibold text-muted-foreground mb-1">Allocation breakdown:</p>
               {[...resource.plans].map((planTitle) => {
                 const planWeeks = new Map<string, number>();
                 resource.weeklyData.forEach((wd) => {
@@ -364,7 +364,7 @@ function ResourceRow({
                 const avgPct = sortedKeys.length > 0 ? Math.round([...planWeeks.values()].reduce((s, v) => s + v, 0) / sortedKeys.length) : 0;
 
                 return (
-                  <div key={planTitle} className="flex items-center gap-2 text-[10px]">
+                  <div key={planTitle} className="flex items-center gap-2 text-[13px]">
                     <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
                     <span className="font-medium min-w-[120px] truncate">{planTitle}</span>
                     <span className="text-muted-foreground">{from} → {to}</span>
@@ -373,7 +373,7 @@ function ResourceRow({
                 );
               })}
               {resource.overallocatedWeeks > 0 && (
-                <div className="flex items-center gap-1.5 mt-1 text-[10px] text-destructive font-medium">
+                <div className="flex items-center gap-1.5 mt-1 text-[13px] text-destructive font-medium">
                   <AlertTriangle className="h-3 w-3" />
                   {resource.overallocatedWeeks} week{resource.overallocatedWeeks > 1 ? "s" : ""} over 100% — review assignments
                 </div>

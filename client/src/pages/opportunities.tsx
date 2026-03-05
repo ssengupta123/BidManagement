@@ -140,11 +140,11 @@ export default function Opportunities() {
             >
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <Label htmlFor="name" className="text-xs font-medium">Opportunity Name</Label>
+                  <Label htmlFor="name" className="text-sm font-medium">Opportunity Name</Label>
                   <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required data-testid="input-opp-name" className="mt-1.5" />
                 </div>
                 <div>
-                  <Label htmlFor="phase" className="text-xs font-medium">Phase</Label>
+                  <Label htmlFor="phase" className="text-sm font-medium">Phase</Label>
                   <Select value={formData.phase} onValueChange={(v) => setFormData({ ...formData, phase: v })}>
                     <SelectTrigger data-testid="select-phase" className="mt-1.5">
                       <SelectValue />
@@ -158,7 +158,7 @@ export default function Opportunities() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="workType" className="text-xs font-medium">Work Type</Label>
+                  <Label htmlFor="workType" className="text-sm font-medium">Work Type</Label>
                   <Select value={formData.workType} onValueChange={(v) => setFormData({ ...formData, workType: v })}>
                     <SelectTrigger data-testid="select-work-type" className="mt-1.5">
                       <SelectValue />
@@ -172,35 +172,35 @@ export default function Opportunities() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="value" className="text-xs font-medium">Value ($ ex GST)</Label>
+                  <Label htmlFor="value" className="text-sm font-medium">Value ($ ex GST)</Label>
                   <Input id="value" type="number" value={formData.value} onChange={(e) => setFormData({ ...formData, value: e.target.value })} data-testid="input-value" className="mt-1.5" />
                 </div>
                 <div>
-                  <Label htmlFor="margin" className="text-xs font-medium">Margin (%)</Label>
+                  <Label htmlFor="margin" className="text-sm font-medium">Margin (%)</Label>
                   <Input id="margin" type="number" step="0.01" value={formData.margin} onChange={(e) => setFormData({ ...formData, margin: e.target.value })} data-testid="input-margin" className="mt-1.5" />
                 </div>
                 <div>
-                  <Label htmlFor="casLead" className="text-xs font-medium">CAS Lead</Label>
+                  <Label htmlFor="casLead" className="text-sm font-medium">CAS Lead</Label>
                   <Input id="casLead" value={formData.casLead} onChange={(e) => setFormData({ ...formData, casLead: e.target.value })} data-testid="input-cas-lead" className="mt-1.5" />
                 </div>
                 <div>
-                  <Label htmlFor="csdLead" className="text-xs font-medium">CSD Lead</Label>
+                  <Label htmlFor="csdLead" className="text-sm font-medium">CSD Lead</Label>
                   <Input id="csdLead" value={formData.csdLead} onChange={(e) => setFormData({ ...formData, csdLead: e.target.value })} data-testid="input-csd-lead" className="mt-1.5" />
                 </div>
                 <div>
-                  <Label htmlFor="partner" className="text-xs font-medium">Partner</Label>
+                  <Label htmlFor="partner" className="text-sm font-medium">Partner</Label>
                   <Input id="partner" value={formData.partner} onChange={(e) => setFormData({ ...formData, partner: e.target.value })} data-testid="input-partner" className="mt-1.5" />
                 </div>
                 <div>
-                  <Label htmlFor="clientCode" className="text-xs font-medium">Client Code</Label>
+                  <Label htmlFor="clientCode" className="text-sm font-medium">Client Code</Label>
                   <Input id="clientCode" value={formData.clientCode} onChange={(e) => setFormData({ ...formData, clientCode: e.target.value })} data-testid="input-client-code" className="mt-1.5" />
                 </div>
                 <div>
-                  <Label htmlFor="category" className="text-xs font-medium">Category</Label>
+                  <Label htmlFor="category" className="text-sm font-medium">Category</Label>
                   <Input id="category" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} data-testid="input-category" className="mt-1.5" />
                 </div>
                 <div>
-                  <Label htmlFor="status" className="text-xs font-medium">Status</Label>
+                  <Label htmlFor="status" className="text-sm font-medium">Status</Label>
                   <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
                     <SelectTrigger data-testid="select-status" className="mt-1.5">
                       <SelectValue />
@@ -214,7 +214,7 @@ export default function Opportunities() {
                   </Select>
                 </div>
                 <div className="col-span-2">
-                  <Label htmlFor="comment" className="text-xs font-medium">Comment</Label>
+                  <Label htmlFor="comment" className="text-sm font-medium">Comment</Label>
                   <Textarea id="comment" value={formData.comment} onChange={(e) => setFormData({ ...formData, comment: e.target.value })} data-testid="input-comment" className="mt-1.5" />
                 </div>
               </div>
@@ -265,9 +265,9 @@ export default function Opportunities() {
                   <div className="min-w-0 flex-1">
                     <h3 className="font-semibold text-sm leading-tight truncate" data-testid={`text-opp-name-${opp.id}`}>{opp.name}</h3>
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                      {opp.phase && <Badge variant="outline" className="text-[10px] font-medium">{opp.phase}</Badge>}
+                      {opp.phase && <Badge variant="outline" className="text-[13px] font-medium">{opp.phase}</Badge>}
                       {opp.status && (
-                        <Badge className={`text-[10px] font-medium border ${getStatusColor(opp.status)}`}>
+                        <Badge className={`text-[13px] font-medium border ${getStatusColor(opp.status)}`}>
                           {opp.status}
                         </Badge>
                       )}
@@ -277,7 +277,7 @@ export default function Opportunities() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-7 text-xs px-2"
+                      className="h-7 text-sm px-2"
                       onClick={() => createBidMutation.mutate(opp)}
                       disabled={createBidMutation.isPending}
                       data-testid={`button-create-bid-${opp.id}`}
@@ -297,7 +297,7 @@ export default function Opportunities() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
                   {opp.clientCode && (
                     <div className="flex items-center gap-1.5 text-muted-foreground">
                       <Building2 className="h-3 w-3 shrink-0" />
@@ -326,7 +326,7 @@ export default function Opportunities() {
                 </div>
 
                 {opp.comment && (
-                  <p className="text-xs text-muted-foreground mt-2 line-clamp-1 border-t border-border/50 pt-2">{opp.comment}</p>
+                  <p className="text-sm text-muted-foreground mt-2 line-clamp-1 border-t border-border/50 pt-2">{opp.comment}</p>
                 )}
               </CardContent>
             </Card>
