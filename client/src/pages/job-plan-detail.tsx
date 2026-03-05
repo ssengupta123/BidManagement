@@ -309,7 +309,7 @@ export default function JobPlanDetail() {
             <div className="flex items-center gap-1.5">
               <MapPin className="h-3 w-3 text-muted-foreground" />
               <Select value={projectState} onValueChange={setProjectState}>
-                <SelectTrigger className="h-6 w-[110px] text-[13px] border-dashed" data-testid="select-project-state">
+                <SelectTrigger className="h-7 w-[120px] text-[13px] border-dashed" data-testid="select-project-state">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -380,7 +380,7 @@ export default function JobPlanDetail() {
               <Button
                 size="sm"
                 variant="outline"
-                className="h-7 px-2 text-[13px]"
+                className="h-8 px-3 text-[13px]"
                 onClick={() => {
                   const all: Record<string, boolean> = {};
                   Object.keys(milestoneGroups).forEach((ms) => { all[ms] = false; });
@@ -394,7 +394,7 @@ export default function JobPlanDetail() {
               <Button
                 size="sm"
                 variant="outline"
-                className="h-7 px-2 text-[13px]"
+                className="h-8 px-3 text-[13px]"
                 onClick={() => setExpandedMilestones({})}
                 data-testid="button-expand-all"
               >
@@ -530,7 +530,7 @@ function MilestoneGroup({
             {isRenaming ? (
               <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                 <Input
-                  className="h-6 text-sm w-48"
+                  className="h-8 text-sm w-48"
                   value={renameValue}
                   onChange={(e) => setRenameValue(e.target.value)}
                   onKeyDown={(e) => {
@@ -570,7 +570,7 @@ function MilestoneGroup({
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 px-2 text-[13px]"
+              className="h-7 px-2 text-[13px]"
               onClick={() => onAddLine()}
               data-testid={`button-add-line-${milestone}`}
             >
@@ -588,8 +588,8 @@ function MilestoneGroup({
             {confirmDelete ? (
               <div className="flex items-center gap-1">
                 <span className="text-[13px] text-destructive whitespace-nowrap">Delete {lines.length} line{lines.length !== 1 ? "s" : ""}?</span>
-                <Button size="sm" variant="destructive" className="h-6 px-1.5 text-[13px]" onClick={() => { onDeleteMilestone(milestone); setConfirmDelete(false); }} data-testid={`button-confirm-delete-milestone-${milestone}`}>Yes</Button>
-                <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[13px]" onClick={() => setConfirmDelete(false)}>No</Button>
+                <Button size="sm" variant="destructive" className="h-7 px-2 text-[13px]" onClick={() => { onDeleteMilestone(milestone); setConfirmDelete(false); }} data-testid={`button-confirm-delete-milestone-${milestone}`}>Yes</Button>
+                <Button size="sm" variant="ghost" className="h-7 px-2 text-[13px]" onClick={() => setConfirmDelete(false)}>No</Button>
               </div>
             ) : (
               <Button
@@ -674,36 +674,36 @@ function LineRow({
       <>
         <tr className="border-b bg-primary/5" data-testid={`row-line-edit-${line.id}`}>
           <td className="p-1.5 pl-8 sticky left-0 bg-primary/5 z-10">
-            <Input className="h-7 text-sm" value={editData.resource || ""} onChange={(e) => onEditChange({ ...editData, resource: e.target.value })} placeholder="Name" />
+            <Input className="h-8 text-sm" value={editData.resource || ""} onChange={(e) => onEditChange({ ...editData, resource: e.target.value })} placeholder="Name" />
           </td>
           <td className="p-1.5">
             <Select value={editData.chargeOutLevel || ""} onValueChange={(v) => onEditChange({ ...editData, chargeOutLevel: v })}>
-              <SelectTrigger className="h-7 text-sm"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {CHARGE_LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
               </SelectContent>
             </Select>
           </td>
           <td className="p-1.5">
-            <Input className="h-7 text-sm" value={editData.jobRole || ""} onChange={(e) => onEditChange({ ...editData, jobRole: e.target.value })} placeholder="Role" />
+            <Input className="h-8 text-sm" value={editData.jobRole || ""} onChange={(e) => onEditChange({ ...editData, jobRole: e.target.value })} placeholder="Role" />
           </td>
           <td className="p-1.5">
-            <Input className="h-7 text-sm text-right" type="number" value={editData.panelHourlyRate || 0} onChange={(e) => onEditChange({ ...editData, panelHourlyRate: parseFloat(e.target.value) || 0 })} />
+            <Input className="h-8 text-sm text-right" type="number" value={editData.panelHourlyRate || 0} onChange={(e) => onEditChange({ ...editData, panelHourlyRate: parseFloat(e.target.value) || 0 })} />
           </td>
           <td className="p-1.5">
-            <Input className="h-7 text-sm text-right" type="number" value={editData.discountPercent || 0} onChange={(e) => onEditChange({ ...editData, discountPercent: parseFloat(e.target.value) || 0 })} />
+            <Input className="h-8 text-sm text-right" type="number" value={editData.discountPercent || 0} onChange={(e) => onEditChange({ ...editData, discountPercent: parseFloat(e.target.value) || 0 })} />
           </td>
           <td className="p-1.5 text-right text-muted-foreground">
             ${((editData.panelHourlyRate || 0) * (1 - (editData.discountPercent || 0) / 100)).toFixed(2)}
           </td>
           <td className="p-1.5">
-            <Input className="h-7 text-sm text-right" type="number" value={editData.hourlyGrossCost || 0} onChange={(e) => onEditChange({ ...editData, hourlyGrossCost: parseFloat(e.target.value) || 0 })} />
+            <Input className="h-8 text-sm text-right" type="number" value={editData.hourlyGrossCost || 0} onChange={(e) => onEditChange({ ...editData, hourlyGrossCost: parseFloat(e.target.value) || 0 })} />
           </td>
           <td className="p-1.5">
-            <Input className="h-7 text-sm text-right" type="number" value={editData.budgetHours || 0} onChange={(e) => onEditChange({ ...editData, budgetHours: parseFloat(e.target.value) || 0 })} />
+            <Input className="h-8 text-sm text-right" type="number" value={editData.budgetHours || 0} onChange={(e) => onEditChange({ ...editData, budgetHours: parseFloat(e.target.value) || 0 })} />
           </td>
           <td className="p-1.5">
-            <Input className="h-7 text-sm text-right" type="number" value={editData.forecastHours || 0} onChange={(e) => onEditChange({ ...editData, forecastHours: parseFloat(e.target.value) || 0 })} />
+            <Input className="h-8 text-sm text-right" type="number" value={editData.forecastHours || 0} onChange={(e) => onEditChange({ ...editData, forecastHours: parseFloat(e.target.value) || 0 })} />
           </td>
           <td className="p-1.5 text-right text-muted-foreground">
             {formatCurrency((editData.forecastHours || 0) * ((editData.panelHourlyRate || 0) * (1 - (editData.discountPercent || 0) / 100)))}
@@ -711,8 +711,8 @@ function LineRow({
           <td className="p-1.5"></td>
           <td className="p-1.5">
             <div className="flex gap-1">
-              <Button size="sm" variant="default" className="h-6 px-2 text-[13px]" onClick={onSaveEdit}><Save className="h-3 w-3" /></Button>
-              <Button size="sm" variant="ghost" className="h-6 px-2 text-[13px]" onClick={onCancelEdit}>Cancel</Button>
+              <Button size="sm" variant="default" className="h-7 px-2 text-[13px]" onClick={onSaveEdit}><Save className="h-3 w-3" /></Button>
+              <Button size="sm" variant="ghost" className="h-7 px-2 text-[13px]" onClick={onCancelEdit}>Cancel</Button>
             </div>
           </td>
         </tr>
@@ -762,7 +762,7 @@ function LineRow({
         </td>
         <td className="p-2">
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[13px]" onClick={onStartEdit} data-testid={`button-edit-line-${line.id}`}>
+            <Button size="sm" variant="ghost" className="h-7 px-2 text-[13px]" onClick={onStartEdit} data-testid={`button-edit-line-${line.id}`}>
               Edit
             </Button>
             <Button size="sm" variant="ghost" className="h-6 px-1.5 text-destructive" onClick={onDelete} data-testid={`button-delete-line-${line.id}`}>
