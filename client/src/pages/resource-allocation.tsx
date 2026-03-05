@@ -257,11 +257,12 @@ export default function ResourceAllocation() {
         </Card>
       )}
 
-      <div className="flex items-center gap-4 text-[10px] text-muted-foreground px-1">
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-primary/20 border border-primary/30" /> ≤50%</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-primary/40 border border-primary/50" /> 51–99%</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-primary border border-primary" /> 100%</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-destructive border border-destructive" /> &gt;100% (overallocated)</span>
+      <div className="flex items-center gap-4 text-[10px] text-muted-foreground px-1 flex-wrap">
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #7dd3fc 0%, #bae6fd 100%)" }} /> ≤50%</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%)" }} /> 51–79%</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #10b981 0%, #34d399 100%)" }} /> 80–99%</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }} /> 100%</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: "linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)" }} /> &gt;100% (overallocated)</span>
       </div>
     </div>
   );
@@ -307,20 +308,23 @@ function ResourceRow({
           const totalPct = wd?.totalPct || 0;
           const isMonthStart = w.getDate() <= 7;
 
-          let cellClass = "bg-background";
-          let textClass = "text-muted-foreground/20";
+          let cellStyle: React.CSSProperties = {};
+          let textClass = "";
           if (totalPct > 100) {
-            cellClass = "bg-destructive";
-            textClass = "text-destructive-foreground font-bold";
+            cellStyle = { background: "linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)" };
+            textClass = "text-white font-bold";
           } else if (totalPct === 100) {
-            cellClass = "bg-primary";
-            textClass = "text-primary-foreground";
+            cellStyle = { background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" };
+            textClass = "text-white";
+          } else if (totalPct >= 80) {
+            cellStyle = { background: "linear-gradient(135deg, #10b981 0%, #34d399 100%)" };
+            textClass = "text-white";
           } else if (totalPct >= 50) {
-            cellClass = "bg-primary/40";
-            textClass = "text-primary-foreground";
+            cellStyle = { background: "linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%)" };
+            textClass = "text-white";
           } else if (totalPct > 0) {
-            cellClass = "bg-primary/20";
-            textClass = "text-primary";
+            cellStyle = { background: "linear-gradient(135deg, #7dd3fc 0%, #bae6fd 100%)" };
+            textClass = "text-sky-900";
           }
 
           return (
@@ -329,7 +333,11 @@ function ResourceRow({
               className={`p-0 text-center ${isMonthStart ? "border-l border-border/60" : ""}`}
               title={`${resource.name} - W${i + 1}: ${totalPct}%${wd?.contributions.map((c) => `\n  ${c.planTitle} / ${c.milestone}: ${c.pct}%`).join("") || ""}`}
             >
-              <div className={`h-6 flex items-center justify-center text-[8px] ${cellClass} ${textClass} mx-px rounded-sm`} data-testid={`alloc-${resource.name}-${i}`}>
+              <div
+                style={cellStyle}
+                className={`h-6 flex items-center justify-center text-[8px] ${textClass} mx-px rounded-sm border border-border/10`}
+                data-testid={`alloc-${resource.name}-${i}`}
+              >
                 {totalPct > 0 ? totalPct : ""}
               </div>
             </td>
