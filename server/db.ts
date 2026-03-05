@@ -15,10 +15,13 @@ function createKnexConfig(): Knex.Knex.Config {
       );
     }
 
+    const host = server.replace(/:.*$/, "");
+    console.log(`[DB] Connecting to Azure SQL: ${host} / ${database} as ${user}`);
+
     return {
       client: "mssql",
       connection: {
-        server,
+        host,
         database,
         user,
         password,
@@ -26,12 +29,13 @@ function createKnexConfig(): Knex.Knex.Config {
         options: {
           encrypt: true,
           trustServerCertificate: false,
-          connectTimeout: 30000,
+          connectTimeout: 60000,
           requestTimeout: 30000,
+          enableArithAbort: true,
         },
-      },
+      } as any,
       pool: { min: 0, max: 10, idleTimeoutMillis: 30000 },
-      acquireConnectionTimeout: 30000,
+      acquireConnectionTimeout: 60000,
     };
   }
 
