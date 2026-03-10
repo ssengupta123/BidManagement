@@ -60,40 +60,42 @@ app.use((req, res, next) => {
   next();
 });
 
-const { runMigrations } = await import("./migrate");
-await runMigrations().catch(console.error);
-const { seedDatabase } = await import("./seed");
-await seedDatabase().catch(console.error);
-await registerRoutes(httpServer, app);
+(async () => {
+  const { runMigrations } = await import("./migrate");
+  await runMigrations().catch(console.error);
+  const { seedDatabase } = await import("./seed");
+  await seedDatabase().catch(console.error);
+  await registerRoutes(httpServer, app);
 
-app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
+  app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
 
-  console.error("Internal Server Error:", err);
+    console.error("Internal Server Error:", err);
 
-  if (res.headersSent) {
-    return next(err);
+    if (res.headersSent) {
+      return next(err);
+    }
+
+    return res.status(status).json({ message });
+  });
+
+  if (process.env.NODE_ENV === "production") {
+    serveStatic(app);
+  } else {
+    const { setupVite } = await import("./vite");
+    await setupVite(httpServer, app);
   }
 
-  return res.status(status).json({ message });
-});
-
-if (process.env.NODE_ENV === "production") {
-  serveStatic(app);
-} else {
-  const { setupVite } = await import("./vite");
-  await setupVite(httpServer, app);
-}
-
-const port = Number.parseInt(process.env.PORT || "5000", 10);
-httpServer.listen(
-  {
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  },
-  () => {
-    log(`serving on port ${port}`);
-  },
-);
+  const port = Number.parseInt(process.env.PORT || "5000", 10);
+  httpServer.listen(
+    {
+      port,
+      host: "0.0.0.0",
+      reusePort: true,
+    },
+    () => {
+      log(`serving on port ${port}`);
+    },
+  );
+})();

@@ -70,7 +70,7 @@ async function buildAll() {
   });
 }
 
-await buildAll().catch((err) => {
+buildAll().catch((err) => {
   console.error(err);
   process.exit(1);
 });
