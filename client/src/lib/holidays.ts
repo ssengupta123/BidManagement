@@ -76,12 +76,10 @@ function getVictoriaHolidays(year: number): Holiday[] {
 }
 
 function getStateHolidays(year: number, state: string): Holiday[] {
-  switch (state) {
-    case "VIC":
-      return getVictoriaHolidays(year);
-    default:
-      return [];
+  if (state === "VIC") {
+    return getVictoriaHolidays(year);
   }
+  return [];
 }
 
 function getAllHolidays(year: number, state: string = "VIC"): Holiday[] {

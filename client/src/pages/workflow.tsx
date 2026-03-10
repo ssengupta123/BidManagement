@@ -42,7 +42,7 @@ function getWritingProgress(bid: Bid): { done: number; total: number; steps: { l
   return { done: steps.filter((s) => s.complete).length, total: steps.length, steps };
 }
 
-function BidCard({ bid, opp, stageKey }: { bid: Bid; opp?: Opportunity; stageKey: string }) {
+function BidCard({ bid, opp, stageKey }: Readonly<{ bid: Bid; opp?: Opportunity; stageKey: string }>) {
   const dueInfo = getDaysUntilDue(opp?.dueDate || null);
   const isWriting = stageKey === "writing";
   const progress = isWriting ? getWritingProgress(bid) : null;
@@ -194,7 +194,7 @@ export default function Workflow() {
                           {bid.opportunityId && oppMap.get(bid.opportunityId)?.value && (
                             <span className="flex items-center gap-0.5 text-[13px] text-muted-foreground">
                               <DollarSign className="h-2.5 w-2.5" />
-                              {formatValue(oppMap.get(bid.opportunityId)!.value!)}
+                              {formatValue(oppMap.get(bid.opportunityId)?.value ?? 0)}
                             </span>
                           )}
                           <span className="text-[13px] text-muted-foreground">

@@ -59,6 +59,285 @@ function getStageColor(stage: string) {
   return "text-primary";
 }
 
+function getProgressStepStyle(isCompleted: boolean, isCurrent: boolean, isRejected: boolean) {
+  if (isCompleted) return "bg-primary text-primary-foreground shadow-sm shadow-primary/20";
+  if (isCurrent && isRejected) return "bg-destructive text-destructive-foreground shadow-sm shadow-destructive/20";
+  if (isCurrent) return "bg-primary/15 text-primary ring-2 ring-primary/30";
+  return "bg-muted text-muted-foreground/50";
+}
+
+function WorkflowStagePanel({ bid, qualifyNotes, setQualifyNotes, execComments, setExecComments, selectedManager, setSelectedManager, selectedWriter, setSelectedWriter, users, casQualifyMutation, csdQualifyMutation, assignWriterMutation, generateResponseMutation, generateDeliveryMutation, generateResourceMutation, generateFinalMutation, submitForReviewMutation, execDecisionMutation, handleDownloadPDF }: Readonly<{
+  bid: Bid;
+  qualifyNotes: string;
+  setQualifyNotes: (v: string) => void;
+  execComments: string;
+  setExecComments: (v: string) => void;
+  selectedManager: string;
+  setSelectedManager: (v: string) => void;
+  selectedWriter: string;
+  setSelectedWriter: (v: string) => void;
+  users: User[] | undefined;
+  casQualifyMutation: { mutate: (v: boolean) => void; isPending: boolean };
+  csdQualifyMutation: { mutate: (v: boolean) => void; isPending: boolean };
+  assignWriterMutation: { mutate: () => void; isPending: boolean };
+  generateResponseMutation: { mutate: () => void; isPending: boolean };
+  generateDeliveryMutation: { mutate: () => void; isPending: boolean };
+  generateResourceMutation: { mutate: () => void; isPending: boolean };
+  generateFinalMutation: { mutate: () => void; isPending: boolean };
+  submitForReviewMutation: { mutate: () => void; isPending: boolean };
+  execDecisionMutation: { mutate: (v: boolean) => void; isPending: boolean };
+  handleDownloadPDF: () => void;
+}>) {
+  if (bid.stage === "cas_qualification") {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Shield className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-sm font-semibold">CAS Team Qualification</CardTitle>
+              <p className="text-sm text-muted-foreground">Sales team reviews strategic and commercial fit</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4 pt-0">
+          <div>
+            <Label className="text-sm font-medium">Notes</Label>
+            <Textarea value={qualifyNotes} onChange={(e) => setQualifyNotes(e.target.value)} placeholder="Add qualification notes..." className="mt-1.5 min-h-[80px]" data-testid="input-qualify-notes" />
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => casQualifyMutation.mutate(true)} disabled={casQualifyMutation.isPending} size="sm" data-testid="button-cas-qualify">
+              {casQualifyMutation.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <CheckCircle className="h-3.5 w-3.5 mr-1.5" />}
+              Qualify
+            </Button>
+            <Button variant="outline" className="text-destructive hover:text-destructive" onClick={() => casQualifyMutation.mutate(false)} disabled={casQualifyMutation.isPending} size="sm" data-testid="button-cas-reject">
+              <XCircle className="h-3.5 w-3.5 mr-1.5" />
+              Reject
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (bid.stage === "csd_qualification") {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-chart-2/10 flex items-center justify-center">
+              <Shield className="h-4 w-4 text-chart-2" />
+            </div>
+            <div>
+              <CardTitle className="text-sm font-semibold">CSD Team Qualification</CardTitle>
+              <p className="text-sm text-muted-foreground">Delivery team assesses feasibility and resource availability</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4 pt-0">
+          <div>
+            <Label className="text-sm font-medium">Notes</Label>
+            <Textarea value={qualifyNotes} onChange={(e) => setQualifyNotes(e.target.value)} placeholder="Add qualification notes..." className="mt-1.5 min-h-[80px]" data-testid="input-csd-qualify-notes" />
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => csdQualifyMutation.mutate(true)} disabled={csdQualifyMutation.isPending} size="sm" data-testid="button-csd-qualify">
+              {csdQualifyMutation.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <CheckCircle className="h-3.5 w-3.5 mr-1.5" />}
+              Qualify
+            </Button>
+            <Button variant="outline" className="text-destructive hover:text-destructive" onClick={() => csdQualifyMutation.mutate(false)} disabled={csdQualifyMutation.isPending} size="sm" data-testid="button-csd-reject">
+              <XCircle className="h-3.5 w-3.5 mr-1.5" />
+              Reject
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (bid.stage === "bid_manager_review") {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Users className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-sm font-semibold">Assign Bid Manager & Writer</CardTitle>
+              <p className="text-sm text-muted-foreground">Select team members to prepare the response</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4 pt-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium">Bid Manager</Label>
+              <Select value={selectedManager} onValueChange={setSelectedManager}>
+                <SelectTrigger data-testid="select-bid-manager" className="mt-1.5">
+                  <SelectValue placeholder="Select manager" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users?.filter((u) => u.role === "bid_manager" || u.role === "executive").map((u) => (
+                    <SelectItem key={u.id} value={String(u.id)}>{u.fullName}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Technical Writer</Label>
+              <Select value={selectedWriter} onValueChange={setSelectedWriter}>
+                <SelectTrigger data-testid="select-writer" className="mt-1.5">
+                  <SelectValue placeholder="Select writer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users?.filter((u) => u.role === "writer" || u.role === "csd_lead").map((u) => (
+                    <SelectItem key={u.id} value={String(u.id)}>{u.fullName}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <Button onClick={() => assignWriterMutation.mutate()} disabled={!selectedWriter || !selectedManager || assignWriterMutation.isPending} size="sm" data-testid="button-assign">
+            {assignWriterMutation.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <ArrowRight className="h-3.5 w-3.5 mr-1.5" />}
+            Assign & Start Writing
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (bid.stage === "writing") {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-chart-3/10 flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-chart-3" />
+            </div>
+            <div>
+              <CardTitle className="text-sm font-semibold">Response Writing</CardTitle>
+              <p className="text-sm text-muted-foreground">Generate technical response, delivery plan, and resource plan</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4 pt-0">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="p-3 rounded-md border border-border/60 hover-elevate cursor-pointer" role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (!generateResponseMutation.isPending) generateResponseMutation.mutate(); } }} onClick={() => !generateResponseMutation.isPending && generateResponseMutation.mutate()} data-testid="button-gen-response">
+              <div className="flex items-center gap-2">
+                {generateResponseMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <FileText className="h-4 w-4 text-chart-2 shrink-0" />}
+                <div>
+                  <p className="text-sm font-semibold">Technical Response</p>
+                  <p className="text-[13px] text-muted-foreground">{bid.technicalResponse ? "Regenerate" : "Generate"}</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-3 rounded-md border border-border/60 hover-elevate cursor-pointer" role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (!generateDeliveryMutation.isPending) generateDeliveryMutation.mutate(); } }} onClick={() => !generateDeliveryMutation.isPending && generateDeliveryMutation.mutate()} data-testid="button-gen-delivery">
+              <div className="flex items-center gap-2">
+                {generateDeliveryMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <ClipboardList className="h-4 w-4 text-chart-4 shrink-0" />}
+                <div>
+                  <p className="text-sm font-semibold">Delivery Plan</p>
+                  <p className="text-[13px] text-muted-foreground">{bid.deliveryPlan ? "Regenerate" : "Generate"}</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-3 rounded-md border border-border/60 hover-elevate cursor-pointer" role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (!generateResourceMutation.isPending) generateResourceMutation.mutate(); } }} onClick={() => !generateResourceMutation.isPending && generateResourceMutation.mutate()} data-testid="button-gen-resource">
+              <div className="flex items-center gap-2">
+                {generateResourceMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <Users className="h-4 w-4 text-chart-5 shrink-0" />}
+                <div>
+                  <p className="text-sm font-semibold">Resource Plan</p>
+                  <p className="text-[13px] text-muted-foreground">{bid.resourcePlan ? "Regenerate" : "Generate"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <Separator />
+          <div className="flex gap-2 flex-wrap">
+            <Button onClick={() => generateFinalMutation.mutate()} disabled={generateFinalMutation.isPending} variant="outline" size="sm" data-testid="button-compile-final">
+              {generateFinalMutation.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <FileText className="h-3.5 w-3.5 mr-1.5" />}
+              Compile Final
+            </Button>
+            <Button onClick={() => submitForReviewMutation.mutate()} disabled={submitForReviewMutation.isPending || !bid.technicalResponse} size="sm" data-testid="button-submit-review">
+              {submitForReviewMutation.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Send className="h-3.5 w-3.5 mr-1.5" />}
+              Submit for Review
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (bid.stage === "executive_review") {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-chart-4/10 flex items-center justify-center">
+              <Shield className="h-4 w-4 text-chart-4" />
+            </div>
+            <div>
+              <CardTitle className="text-sm font-semibold">Executive Review</CardTitle>
+              <p className="text-sm text-muted-foreground">Approve for submission or request revisions</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4 pt-0">
+          <div>
+            <Label className="text-sm font-medium">Comments</Label>
+            <Textarea value={execComments} onChange={(e) => setExecComments(e.target.value)} placeholder="Add review comments..." className="mt-1.5 min-h-[80px]" data-testid="input-exec-comments" />
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => execDecisionMutation.mutate(true)} disabled={execDecisionMutation.isPending} size="sm" data-testid="button-approve">
+              {execDecisionMutation.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <CheckCircle className="h-3.5 w-3.5 mr-1.5" />}
+              Approve
+            </Button>
+            <Button variant="outline" className="text-destructive hover:text-destructive" onClick={() => execDecisionMutation.mutate(false)} disabled={execDecisionMutation.isPending} size="sm" data-testid="button-request-revision">
+              <XCircle className="h-3.5 w-3.5 mr-1.5" />
+              Request Revision
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (bid.stage === "approved") {
+    return (
+      <div className="text-center py-12">
+        <div className="h-16 w-16 rounded-2xl bg-chart-2/10 flex items-center justify-center mx-auto mb-4">
+          <CheckCircle className="h-8 w-8 text-chart-2" />
+        </div>
+        <h3 className="text-lg font-bold">Bid Approved</h3>
+        <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
+          This bid has been approved. Download the response for final submission.
+        </p>
+        <Button className="mt-5" onClick={handleDownloadPDF} data-testid="button-download-final">
+          <Download className="h-4 w-4 mr-2" />
+          Download Response
+        </Button>
+      </div>
+    );
+  }
+
+  if (bid.stage.includes("rejected")) {
+    const rejectionStage = bid.stage === "cas_rejected" ? "CAS (Sales)" : "CSD (Delivery)";
+    return (
+      <div className="text-center py-12">
+        <div className="h-16 w-16 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+          <XCircle className="h-8 w-8 text-destructive" />
+        </div>
+        <h3 className="text-lg font-bold">Bid Rejected</h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          Rejected at the {rejectionStage} stage.
+        </p>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 export default function BidDetail() {
   const [, params] = useRoute("/bids/:id");
   const bidId = Number(params?.id);
@@ -307,19 +586,12 @@ export default function BidDetail() {
             const isCompleted = stageIndex > idx;
             const isCurrent = bid.stage === step.stage;
             const isRejected = bid.stage.includes("rejected");
+            const stepStyle = getProgressStepStyle(isCompleted, isCurrent, isRejected);
             return (
               <div key={step.stage} className="flex items-center flex-1 last:flex-none">
                 <div className="flex flex-col items-center">
                   <div
-                    className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300
-                      ${isCompleted
-                        ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
-                        : isCurrent
-                          ? isRejected
-                            ? "bg-destructive text-destructive-foreground shadow-sm shadow-destructive/20"
-                            : "bg-primary/15 text-primary ring-2 ring-primary/30"
-                          : "bg-muted text-muted-foreground/50"
-                      }`}
+                    className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${stepStyle}`}
                   >
                     {isCompleted ? <CheckCircle className="h-4 w-4" /> : idx + 1}
                   </div>
@@ -348,260 +620,28 @@ export default function BidDetail() {
         </TabsList>
 
         <TabsContent value="workflow" className="mt-4">
-          {bid.stage === "cas_qualification" && (
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Shield className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-sm font-semibold">CAS Team Qualification</CardTitle>
-                    <p className="text-sm text-muted-foreground">Sales team reviews strategic and commercial fit</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-0">
-                <div>
-                  <Label className="text-sm font-medium">Notes</Label>
-                  <Textarea
-                    value={qualifyNotes}
-                    onChange={(e) => setQualifyNotes(e.target.value)}
-                    placeholder="Add qualification notes..."
-                    className="mt-1.5 min-h-[80px]"
-                    data-testid="input-qualify-notes"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={() => casQualifyMutation.mutate(true)} disabled={casQualifyMutation.isPending} size="sm" data-testid="button-cas-qualify">
-                    {casQualifyMutation.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <CheckCircle className="h-3.5 w-3.5 mr-1.5" />}
-                    Qualify
-                  </Button>
-                  <Button variant="outline" className="text-destructive hover:text-destructive" onClick={() => casQualifyMutation.mutate(false)} disabled={casQualifyMutation.isPending} size="sm" data-testid="button-cas-reject">
-                    <XCircle className="h-3.5 w-3.5 mr-1.5" />
-                    Reject
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {bid.stage === "csd_qualification" && (
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-chart-2/10 flex items-center justify-center">
-                    <Shield className="h-4 w-4 text-chart-2" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-sm font-semibold">CSD Team Qualification</CardTitle>
-                    <p className="text-sm text-muted-foreground">Delivery team assesses feasibility and resource availability</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-0">
-                <div>
-                  <Label className="text-sm font-medium">Notes</Label>
-                  <Textarea
-                    value={qualifyNotes}
-                    onChange={(e) => setQualifyNotes(e.target.value)}
-                    placeholder="Add qualification notes..."
-                    className="mt-1.5 min-h-[80px]"
-                    data-testid="input-csd-qualify-notes"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={() => csdQualifyMutation.mutate(true)} disabled={csdQualifyMutation.isPending} size="sm" data-testid="button-csd-qualify">
-                    {csdQualifyMutation.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <CheckCircle className="h-3.5 w-3.5 mr-1.5" />}
-                    Qualify
-                  </Button>
-                  <Button variant="outline" className="text-destructive hover:text-destructive" onClick={() => csdQualifyMutation.mutate(false)} disabled={csdQualifyMutation.isPending} size="sm" data-testid="button-csd-reject">
-                    <XCircle className="h-3.5 w-3.5 mr-1.5" />
-                    Reject
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {bid.stage === "bid_manager_review" && (
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Users className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-sm font-semibold">Assign Bid Manager & Writer</CardTitle>
-                    <p className="text-sm text-muted-foreground">Select team members to prepare the response</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-0">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium">Bid Manager</Label>
-                    <Select value={selectedManager} onValueChange={setSelectedManager}>
-                      <SelectTrigger data-testid="select-bid-manager" className="mt-1.5">
-                        <SelectValue placeholder="Select manager" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {users?.filter((u) => u.role === "bid_manager" || u.role === "executive").map((u) => (
-                          <SelectItem key={u.id} value={String(u.id)}>{u.fullName}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Technical Writer</Label>
-                    <Select value={selectedWriter} onValueChange={setSelectedWriter}>
-                      <SelectTrigger data-testid="select-writer" className="mt-1.5">
-                        <SelectValue placeholder="Select writer" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {users?.filter((u) => u.role === "writer" || u.role === "csd_lead").map((u) => (
-                          <SelectItem key={u.id} value={String(u.id)}>{u.fullName}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => assignWriterMutation.mutate()}
-                  disabled={!selectedWriter || !selectedManager || assignWriterMutation.isPending}
-                  size="sm"
-                  data-testid="button-assign"
-                >
-                  {assignWriterMutation.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <ArrowRight className="h-3.5 w-3.5 mr-1.5" />}
-                  Assign & Start Writing
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {bid.stage === "writing" && (
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-chart-3/10 flex items-center justify-center">
-                    <Sparkles className="h-4 w-4 text-chart-3" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-sm font-semibold">Response Writing</CardTitle>
-                    <p className="text-sm text-muted-foreground">Generate technical response, delivery plan, and resource plan</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-0">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <div className="p-3 rounded-md border border-border/60 hover-elevate cursor-pointer" onClick={() => !generateResponseMutation.isPending && generateResponseMutation.mutate()} data-testid="button-gen-response">
-                    <div className="flex items-center gap-2">
-                      {generateResponseMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <FileText className="h-4 w-4 text-chart-2 shrink-0" />}
-                      <div>
-                        <p className="text-sm font-semibold">Technical Response</p>
-                        <p className="text-[13px] text-muted-foreground">{bid.technicalResponse ? "Regenerate" : "Generate"}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-3 rounded-md border border-border/60 hover-elevate cursor-pointer" onClick={() => !generateDeliveryMutation.isPending && generateDeliveryMutation.mutate()} data-testid="button-gen-delivery">
-                    <div className="flex items-center gap-2">
-                      {generateDeliveryMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <ClipboardList className="h-4 w-4 text-chart-4 shrink-0" />}
-                      <div>
-                        <p className="text-sm font-semibold">Delivery Plan</p>
-                        <p className="text-[13px] text-muted-foreground">{bid.deliveryPlan ? "Regenerate" : "Generate"}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-3 rounded-md border border-border/60 hover-elevate cursor-pointer" onClick={() => !generateResourceMutation.isPending && generateResourceMutation.mutate()} data-testid="button-gen-resource">
-                    <div className="flex items-center gap-2">
-                      {generateResourceMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <Users className="h-4 w-4 text-chart-5 shrink-0" />}
-                      <div>
-                        <p className="text-sm font-semibold">Resource Plan</p>
-                        <p className="text-[13px] text-muted-foreground">{bid.resourcePlan ? "Regenerate" : "Generate"}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <Separator />
-                <div className="flex gap-2 flex-wrap">
-                  <Button onClick={() => generateFinalMutation.mutate()} disabled={generateFinalMutation.isPending} variant="outline" size="sm" data-testid="button-compile-final">
-                    {generateFinalMutation.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <FileText className="h-3.5 w-3.5 mr-1.5" />}
-                    Compile Final
-                  </Button>
-                  <Button onClick={() => submitForReviewMutation.mutate()} disabled={submitForReviewMutation.isPending || !bid.technicalResponse} size="sm" data-testid="button-submit-review">
-                    {submitForReviewMutation.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Send className="h-3.5 w-3.5 mr-1.5" />}
-                    Submit for Review
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {bid.stage === "executive_review" && (
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-chart-4/10 flex items-center justify-center">
-                    <Shield className="h-4 w-4 text-chart-4" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-sm font-semibold">Executive Review</CardTitle>
-                    <p className="text-sm text-muted-foreground">Approve for submission or request revisions</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-0">
-                <div>
-                  <Label className="text-sm font-medium">Comments</Label>
-                  <Textarea
-                    value={execComments}
-                    onChange={(e) => setExecComments(e.target.value)}
-                    placeholder="Add review comments..."
-                    className="mt-1.5 min-h-[80px]"
-                    data-testid="input-exec-comments"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={() => execDecisionMutation.mutate(true)} disabled={execDecisionMutation.isPending} size="sm" data-testid="button-approve">
-                    {execDecisionMutation.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <CheckCircle className="h-3.5 w-3.5 mr-1.5" />}
-                    Approve
-                  </Button>
-                  <Button variant="outline" className="text-destructive hover:text-destructive" onClick={() => execDecisionMutation.mutate(false)} disabled={execDecisionMutation.isPending} size="sm" data-testid="button-request-revision">
-                    <XCircle className="h-3.5 w-3.5 mr-1.5" />
-                    Request Revision
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {bid.stage === "approved" && (
-            <div className="text-center py-12">
-              <div className="h-16 w-16 rounded-2xl bg-chart-2/10 flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="h-8 w-8 text-chart-2" />
-              </div>
-              <h3 className="text-lg font-bold">Bid Approved</h3>
-              <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
-                This bid has been approved. Download the response for final submission.
-              </p>
-              <Button className="mt-5" onClick={handleDownloadPDF} data-testid="button-download-final">
-                <Download className="h-4 w-4 mr-2" />
-                Download Response
-              </Button>
-            </div>
-          )}
-
-          {bid.stage.includes("rejected") && (
-            <div className="text-center py-12">
-              <div className="h-16 w-16 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
-                <XCircle className="h-8 w-8 text-destructive" />
-              </div>
-              <h3 className="text-lg font-bold">Bid Rejected</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Rejected at the {bid.stage === "cas_rejected" ? "CAS (Sales)" : "CSD (Delivery)"} stage.
-              </p>
-            </div>
-          )}
+          <WorkflowStagePanel
+            bid={bid}
+            qualifyNotes={qualifyNotes}
+            setQualifyNotes={setQualifyNotes}
+            execComments={execComments}
+            setExecComments={setExecComments}
+            selectedManager={selectedManager}
+            setSelectedManager={setSelectedManager}
+            selectedWriter={selectedWriter}
+            setSelectedWriter={setSelectedWriter}
+            users={users}
+            casQualifyMutation={casQualifyMutation}
+            csdQualifyMutation={csdQualifyMutation}
+            assignWriterMutation={assignWriterMutation}
+            generateResponseMutation={generateResponseMutation}
+            generateDeliveryMutation={generateDeliveryMutation}
+            generateResourceMutation={generateResourceMutation}
+            generateFinalMutation={generateFinalMutation}
+            submitForReviewMutation={submitForReviewMutation}
+            execDecisionMutation={execDecisionMutation}
+            handleDownloadPDF={handleDownloadPDF}
+          />
         </TabsContent>
 
         <TabsContent value="care" className="mt-4">
@@ -821,7 +861,7 @@ function ContentTab({
   isGenerating,
   hasContent,
   testIdPrefix,
-}: {
+}: Readonly<{
   title: string;
   icon: React.ReactNode;
   iconBg: string;
@@ -831,7 +871,7 @@ function ContentTab({
   isGenerating: boolean;
   hasContent: boolean;
   testIdPrefix: string;
-}) {
+}>) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-3">

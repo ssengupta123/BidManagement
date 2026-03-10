@@ -1,10 +1,10 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
-import { rm, readFile } from "fs/promises";
+import { rm, readFile } from "node:fs/promises";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
-const allowlist = [
+const allowlist = new Set([
   "@google/generative-ai",
   "axios",
   "connect-pg-simple",
@@ -30,7 +30,7 @@ const allowlist = [
   "xlsx",
   "zod",
   "zod-validation-error",
-];
+]);
 
 async function buildAll() {
   await rm("dist", { recursive: true, force: true });
@@ -44,7 +44,7 @@ async function buildAll() {
     ...Object.keys(pkg.dependencies || {}),
     ...Object.keys(pkg.devDependencies || {}),
   ];
-  const externals = allDeps.filter((dep) => !allowlist.includes(dep));
+  const externals = allDeps.filter((dep) => !allowlist.has(dep));
 
   const knexOptionalDrivers = [
     "better-sqlite3",
@@ -70,7 +70,7 @@ async function buildAll() {
   });
 }
 
-buildAll().catch((err) => {
+await buildAll().catch((err) => {
   console.error(err);
   process.exit(1);
 });

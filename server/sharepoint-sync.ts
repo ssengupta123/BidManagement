@@ -121,7 +121,7 @@ function cleanVat(val: string | null | undefined): string | null {
 
 function formatNumericField(raw: any, decimals: number): number | null {
   const num = Number(raw);
-  return raw != null && !Number.isNaN(num) ? parseFloat(num.toFixed(decimals)) : null;
+  return raw != null && !Number.isNaN(num) ? Number.parseFloat(num.toFixed(decimals)) : null;
 }
 
 function extractFieldText(val: any): string | null {
@@ -151,6 +151,12 @@ function extractLookupId(item: SharePointListItem, baseName: string): string | n
   return null;
 }
 
+function resolveDueDateRaw(item: SharePointListItem): string | null {
+  if (typeof item.DueDate === "string") return item.DueDate;
+  if (typeof item.Due === "string") return item.Due;
+  return null;
+}
+
 function extractItemFields(item: SharePointListItem): Record<string, any> {
   return {
     workType: extractFieldText(item.Work_x0020_Type || item.OppWorkType || item.WorkType),
@@ -163,7 +169,7 @@ function extractItemFields(item: SharePointListItem): Record<string, any> {
     clientContact: extractFieldText(item.Planner || item.Client_x0020_Contact || item.ClientContact),
     clientCode: extractFieldText(item.CC || item.Client_x0020_Code || item.ClientCode),
     vat: cleanVat(extractFieldText(item.Team || item.VAT || item.VATCategory || item.VAT_x0020_Category)),
-    dueDate: parseSharePointDate(typeof item.DueDate === "string" ? item.DueDate : typeof item.Due === "string" ? item.Due : null),
+    dueDate: parseSharePointDate(resolveDueDateRaw(item)),
     startDate: parseSharePointDate(typeof item.StartDate === "string" ? item.StartDate : null),
     expiryDate: parseSharePointDate(typeof item.ExpiryDate === "string" ? item.ExpiryDate : null),
   };
@@ -410,6 +416,63 @@ function recordToSnake(record: Record<string, any>): Record<string, any> {
   return out;
 }
 
+async function upsertIncomingRecord(
+  trx: any,
+  record: any,
+  existingBySpId: Map<string, any>,
+  incomingSpIds: Set<string>,
+): Promise<"inserted" | "updated" | "unchanged"> {
+  const snakeRecord = recordToSnake(record);
+  snakeRecord.updated_at = new Date();
+  const spId = snakeRecord.sharepoint_id;
+
+  if (!spId) {
+    snakeRecord.created_at = new Date();
+    await trx("opportunities").insert(snakeRecord);
+    return "inserted";
+  }
+
+  incomingSpIds.add(String(spId));
+  const existing = existingBySpId.get(String(spId));
+
+  if (!existing) {
+    snakeRecord.created_at = new Date();
+    await trx("opportunities").insert(snakeRecord);
+    return "inserted";
+  }
+
+  if (hasOppChanges(existing, snakeRecord)) {
+    await trx("opportunities").where("id", existing.id).update(snakeRecord);
+    return "updated";
+  }
+
+  return "unchanged";
+}
+
+async function removeStaleRecords(
+  trx: any,
+  existingBySpId: Map<string, any>,
+  incomingSpIds: Set<string>,
+): Promise<number> {
+  let removed = 0;
+  for (const [spId, row] of Array.from(existingBySpId)) {
+    if (incomingSpIds.has(spId)) continue;
+    const linkedBids = await trx("bids").where("opportunity_id", row.id).count("* as count");
+    if (Number(linkedBids[0]?.count) > 0) {
+      await trx("opportunities").where("id", row.id).update({
+        sharepoint_id: null,
+        status: "Archived",
+        source: "SharePoint (removed)",
+        updated_at: new Date(),
+      });
+    } else {
+      await trx("opportunities").where("id", row.id).del();
+    }
+    removed++;
+  }
+  return removed;
+}
+
 async function performOppDeltaSync(staged: any[]): Promise<{ inserted: number; updated: number; removed: number; unchanged: number }> {
   let inserted = 0;
   let updated = 0;
@@ -428,50 +491,13 @@ async function performOppDeltaSync(staged: any[]): Promise<{ inserted: number; u
     const incomingSpIds = new Set<string>();
 
     for (const record of staged) {
-      const snakeRecord = recordToSnake(record);
-      snakeRecord.updated_at = new Date();
-      const spId = snakeRecord.sharepoint_id;
-
-      if (!spId) {
-        snakeRecord.created_at = new Date();
-        await trx("opportunities").insert(snakeRecord);
-        inserted++;
-        continue;
-      }
-
-      incomingSpIds.add(String(spId));
-      const existing = existingBySpId.get(String(spId));
-
-      if (existing) {
-        if (hasOppChanges(existing, snakeRecord)) {
-          await trx("opportunities").where("id", existing.id).update(snakeRecord);
-          updated++;
-        } else {
-          unchanged++;
-        }
-      } else {
-        snakeRecord.created_at = new Date();
-        await trx("opportunities").insert(snakeRecord);
-        inserted++;
-      }
+      const result = await upsertIncomingRecord(trx, record, existingBySpId, incomingSpIds);
+      if (result === "inserted") inserted++;
+      else if (result === "updated") updated++;
+      else unchanged++;
     }
 
-    for (const [spId, row] of Array.from(existingBySpId)) {
-      if (!incomingSpIds.has(spId)) {
-        const linkedBids = await trx("bids").where("opportunity_id", row.id).count("* as count");
-        if (Number(linkedBids[0]?.count) > 0) {
-          await trx("opportunities").where("id", row.id).update({
-            sharepoint_id: null,
-            status: "Archived",
-            source: "SharePoint (removed)",
-            updated_at: new Date(),
-          });
-        } else {
-          await trx("opportunities").where("id", row.id).del();
-        }
-        removed++;
-      }
-    }
+    removed = await removeStaleRecords(trx, existingBySpId, incomingSpIds);
   });
 
   return { inserted, updated, removed, unchanged };
@@ -569,7 +595,7 @@ function isJobPlanNameValid(name: string): boolean {
 }
 
 function extractProjectCode(filename: string): string | null {
-  const m = filename.match(/^([A-Z]{2,4}\d{3}(?:-\d{2,3})?)/i);
+  const m = /^([A-Z]{2,4}\d{3}(?:-\d{2,3})?)/i.exec(filename);
   return m ? m[1].toUpperCase() : null;
 }
 
@@ -592,8 +618,8 @@ function jpDateToKey(d: Date): string {
 
 function jpParseNum(v: any): number | null {
   if (v === null || v === undefined || v === "") return null;
-  const n = typeof v === "number" ? v : parseFloat(String(v));
-  return isNaN(n) ? null : n;
+  const n = typeof v === "number" ? v : Number.parseFloat(String(v));
+  return Number.isNaN(n) ? null : n;
 }
 
 function findResourceLoadingRow(ws: any, range: any, XLSX: any): number {
@@ -628,6 +654,29 @@ function extractRates(ws: any, r: number, rateCols: typeof STD_RATE_COLS, XLSX: 
   };
 }
 
+function collectWeeklyAllocs(ws: any, r: number, weekCols: { col: number; date: Date; key: string }[], XLSX: any): Record<string, number> {
+  const weeklyAllocs: Record<string, number> = {};
+  for (const wc of weekCols) {
+    const cell = ws[XLSX.utils.encode_cell({ r, c: wc.col })];
+    const val = jpParseNum(cell?.v);
+    if (val !== null && val > 0 && val <= 2) {
+      weeklyAllocs[wc.key] = Math.round(val * 100);
+    }
+  }
+  return weeklyAllocs;
+}
+
+function mergePersonData(existing: PersonData, rates: PersonData["rates"], weeklyAllocs: Record<string, number>): void {
+  for (const [k, v] of Object.entries(weeklyAllocs)) {
+    existing.weeklyAllocs[k] = v;
+  }
+  for (const [k, v] of Object.entries(rates)) {
+    if (v !== null && ((existing.rates as any)[k] === null || (existing.rates as any)[k] === undefined)) {
+      (existing.rates as any)[k] = v;
+    }
+  }
+}
+
 function extractPersonData(ws: any, range: any, weekCols: { col: number; date: Date; key: string }[], resourceCol: number, rateCols: typeof STD_RATE_COLS, XLSX: any): Map<string, PersonData> {
   const rlRow = findResourceLoadingRow(ws, range, XLSX);
   const startRow = rlRow >= 0 ? rlRow + 1 : JP_HEADER_ROWS;
@@ -641,29 +690,10 @@ function extractPersonData(ws: any, range: any, weekCols: { col: number; date: D
     if (!isJobPlanNameValid(name)) continue;
 
     const rates = extractRates(ws, r, rateCols, XLSX);
-    const weeklyAllocs: Record<string, number> = {};
-    for (const wc of weekCols) {
-      const cell = ws[XLSX.utils.encode_cell({ r, c: wc.col })];
-      const val = jpParseNum(cell?.v);
-      if (val !== null && val > 0 && val <= 2) {
-        weeklyAllocs[wc.key] = Math.round(val * 100);
-      }
-    }
+    const weeklyAllocs = collectWeeklyAllocs(ws, r, weekCols, XLSX);
 
-    if (rlRow >= 0) {
-      if (!personMap.has(name)) {
-        personMap.set(name, { rates, weeklyAllocs });
-      } else {
-        const existing = personMap.get(name)!;
-        for (const [k, v] of Object.entries(weeklyAllocs)) {
-          existing.weeklyAllocs[k] = v;
-        }
-        for (const [k, v] of Object.entries(rates)) {
-          if (v !== null && ((existing.rates as any)[k] === null || (existing.rates as any)[k] === undefined)) {
-            (existing.rates as any)[k] = v;
-          }
-        }
-      }
+    if (rlRow >= 0 && personMap.has(name)) {
+      mergePersonData(personMap.get(name)!, rates, weeklyAllocs);
     } else {
       personMap.set(name, { rates, weeklyAllocs });
     }
@@ -677,20 +707,31 @@ function detectSheetFormat(ws: any, XLSX: any): string {
   return "standard";
 }
 
-function processSAU046Sheet(ws: any, range: any, XLSX: any): Map<string, PersonData> {
-  const rateCols = {
-    panelHourly: 4,
-    discount: 5,
-    discountedHourly: 6,
-    discountedDaily: -1,
-    grossCost: 7,
+function extractSAU046Rates(ws: any, r: number, XLSX: any): PersonData["rates"] {
+  const chargeOut = jpParseNum(ws[XLSX.utils.encode_cell({ r, c: 4 })]?.v);
+  const discPct = jpParseNum(ws[XLSX.utils.encode_cell({ r, c: 5 })]?.v);
+  const discountedRate = jpParseNum(ws[XLSX.utils.encode_cell({ r, c: 6 })]?.v);
+  const costRate = jpParseNum(ws[XLSX.utils.encode_cell({ r, c: 7 })]?.v);
+  return {
+    chargeOutRate: chargeOut,
+    discountPercent: discPct,
+    discountedHourlyRate: discountedRate,
+    discountedDailyRate: discountedRate ? discountedRate * 8 : null,
+    hourlyGrossCost: costRate,
   };
-  const resourceCol = 1;
-  let firstWeekCol = -1;
-  for (let c = 10; c <= range.e.c; c++) {
-    const cell = ws[XLSX.utils.encode_cell({ r: 2, c })];
-    if (cell && typeof cell.v === "number" && cell.v > 40000) { firstWeekCol = c; break; }
+}
+
+function findFirstWeekCol(ws: any, range: any, headerRow: number, startCol: number, XLSX: any): number {
+  for (let c = startCol; c <= range.e.c; c++) {
+    const cell = ws[XLSX.utils.encode_cell({ r: headerRow, c })];
+    if (cell && typeof cell.v === "number" && cell.v > 40000) return c;
   }
+  return -1;
+}
+
+function processSAU046Sheet(ws: any, range: any, XLSX: any): Map<string, PersonData> {
+  const resourceCol = 1;
+  const firstWeekCol = findFirstWeekCol(ws, range, 2, 10, XLSX);
   if (firstWeekCol < 0) return new Map();
   const weekCols = getWeekColumns(ws, range, 2, firstWeekCol, XLSX);
 
@@ -701,25 +742,8 @@ function processSAU046Sheet(ws: any, range: any, XLSX: any): Map<string, PersonD
     const name = String(nameCell.v).trim();
     if (!isJobPlanNameValid(name)) continue;
 
-    const chargeOut = jpParseNum(ws[XLSX.utils.encode_cell({ r, c: 4 })]?.v);
-    const discPct = jpParseNum(ws[XLSX.utils.encode_cell({ r, c: 5 })]?.v);
-    const discountedRate = jpParseNum(ws[XLSX.utils.encode_cell({ r, c: 6 })]?.v);
-    const costRate = jpParseNum(ws[XLSX.utils.encode_cell({ r, c: 7 })]?.v);
-
-    const rates = {
-      chargeOutRate: chargeOut,
-      discountPercent: discPct,
-      discountedHourlyRate: discountedRate,
-      discountedDailyRate: discountedRate ? discountedRate * 8 : null,
-      hourlyGrossCost: costRate,
-    };
-
-    const weeklyAllocs: Record<string, number> = {};
-    for (const wc of weekCols) {
-      const cell = ws[XLSX.utils.encode_cell({ r, c: wc.col })];
-      const val = jpParseNum(cell?.v);
-      if (val !== null && val > 0 && val <= 2) weeklyAllocs[wc.key] = Math.round(val * 100);
-    }
+    const rates = extractSAU046Rates(ws, r, XLSX);
+    const weeklyAllocs = collectWeeklyAllocs(ws, r, weekCols, XLSX);
     personMap.set(name, { rates, weeklyAllocs });
   }
   return personMap;
@@ -736,7 +760,7 @@ function selectBestSheet(wb: any, XLSX: any): string {
 
   for (const name of filtered.length > 0 ? filtered : candidates) {
     const ws = wb.Sheets[name];
-    if (!ws || !ws["!ref"]) continue;
+    if (!ws?.["!ref"]) continue;
     const range = XLSX.utils.decode_range(ws["!ref"]);
     let count = 0;
     for (let r = JP_HEADER_ROWS; r <= Math.min(range.e.r, 50); r++) {
@@ -749,12 +773,80 @@ function selectBestSheet(wb: any, XLSX: any): string {
   return candidates[0];
 }
 
+function extractPersonMapFromSheet(
+  ws: any,
+  range: any,
+  format: string,
+  XLSX: any,
+): Map<string, PersonData> | { error: string } {
+  if (format === "sau046") {
+    return processSAU046Sheet(ws, range, XLSX);
+  }
+  const weekCols = getWeekColumns(ws, range, 2, STD_FIRST_WEEK_COL, XLSX);
+  if (weekCols.length === 0) {
+    return { error: "no week columns found" };
+  }
+  return extractPersonData(ws, range, weekCols, STD_RESOURCE_COL, STD_RATE_COLS, XLSX);
+}
+
+function excelSerialToDateStr(serial: any): string | null {
+  if (!serial || typeof serial !== "number") return null;
+  const d = excelDateToMonday(serial);
+  return d ? d.toISOString().split("T")[0] : null;
+}
+
+async function findOrCreateJobPlan(planTitle: string, ws: any, XLSX: any): Promise<any | null> {
+  const existingPlans = await db("job_plans").where("title", planTitle).select("*");
+  if (existingPlans.length > 0) return existingPlans[0];
+
+  const contractStartDate = excelSerialToDateStr(ws[XLSX.utils.encode_cell({ r: 1, c: 2 })]?.v);
+  const forecastDate = excelSerialToDateStr(ws[XLSX.utils.encode_cell({ r: 0, c: 2 })]?.v);
+
+  const [newPlan] = await db("job_plans").insert({
+    title: planTitle,
+    contract_start_date: contractStartDate,
+    forecast_date: forecastDate,
+  }).returning("*");
+  console.log(`[SharePoint] Job Plans: auto-created job plan "${planTitle}"`);
+  return newPlan;
+}
+
+function buildLineData(name: string, data: PersonData, planTitle: string, sortOrder: number) {
+  const weeklyAllocationsJson = JSON.stringify(data.weeklyAllocs);
+  const totalBudgetHours = Object.values(data.weeklyAllocs).reduce((s, pct) => s + (pct / 100) * STANDARD_WEEKLY_HOURS, 0);
+  return {
+    lineData: {
+      resource: name,
+      milestone: planTitle,
+      charge_out_level: data.rates.chargeOutRate ? `$${data.rates.chargeOutRate}/hr` : null,
+      panel_hourly_rate: data.rates.chargeOutRate,
+      discount_percent: data.rates.discountPercent ? data.rates.discountPercent * 100 : 0,
+      hourly_gross_cost: data.rates.hourlyGrossCost,
+      budget_hours: Number.parseFloat(totalBudgetHours.toFixed(1)),
+      forecast_hours: Number.parseFloat(totalBudgetHours.toFixed(1)),
+      weekly_allocations: weeklyAllocationsJson,
+      sort_order: sortOrder,
+    },
+    weeklyAllocationsJson,
+  };
+}
+
+function hasLineChanged(existingLine: any, lineData: any, weeklyAllocationsJson: string): boolean {
+  return (
+    existingLine.weekly_allocations !== weeklyAllocationsJson ||
+    Math.abs((existingLine.budget_hours || 0) - lineData.budget_hours) > 0.05 ||
+    (existingLine.panel_hourly_rate || 0) !== (lineData.panel_hourly_rate || 0) ||
+    (existingLine.hourly_gross_cost || 0) !== (lineData.hourly_gross_cost || 0)
+  );
+}
+
 async function parseAndProcessJobPlanFile(
   buffer: Buffer,
   fileName: string,
 ): Promise<{ inserted: number; updated: number; unchanged: number; processed: boolean; error?: string }> {
   const XLSX = await import("xlsx");
   const wb = XLSX.read(buffer, { type: "buffer" });
+  const emptyResult = { inserted: 0, updated: 0, unchanged: 0, processed: false };
 
   const codeMatch = extractProjectCode(fileName.replace(/\.(xlsx|xls)$/i, ""));
   const projectCode = codeMatch || fileName.replace(/\.(xlsx|xls)$/i, "").toUpperCase();
@@ -762,58 +854,25 @@ async function parseAndProcessJobPlanFile(
 
   const planSheetName = selectBestSheet(wb, XLSX);
   const ws = wb.Sheets[planSheetName];
-  if (!ws || !ws["!ref"]) {
-    return { inserted: 0, updated: 0, unchanged: 0, processed: false, error: `${fileName}: empty sheet` };
+  if (!ws?.["!ref"]) {
+    return { ...emptyResult, error: `${fileName}: empty sheet` };
   }
   const range = XLSX.utils.decode_range(ws["!ref"]);
-
   const format = detectSheetFormat(ws, XLSX);
-  let personMap: Map<string, PersonData>;
 
-  if (format === "sau046") {
-    personMap = processSAU046Sheet(ws, range, XLSX);
-  } else {
-    const weekCols = getWeekColumns(ws, range, 2, STD_FIRST_WEEK_COL, XLSX);
-    if (weekCols.length === 0) {
-      return { inserted: 0, updated: 0, unchanged: 0, processed: false, error: `${fileName}: no week columns found` };
-    }
-    personMap = extractPersonData(ws, range, weekCols, STD_RESOURCE_COL, STD_RATE_COLS, XLSX);
+  const personMapResult = extractPersonMapFromSheet(ws, range, format, XLSX);
+  if ("error" in personMapResult) {
+    return { ...emptyResult, error: `${fileName}: ${personMapResult.error}` };
   }
+  const personMap = personMapResult;
 
   if (personMap.size === 0) {
     return { inserted: 0, updated: 0, unchanged: 0, processed: true };
   }
 
-  let existingPlans = await db("job_plans").where("title", planTitle).select("*");
-  let jobPlan: any;
-
-  if (existingPlans.length > 0) {
-    jobPlan = existingPlans[0];
-  } else {
-    const contractStart = ws[XLSX.utils.encode_cell({ r: 1, c: 2 })]?.v;
-    const forecastVal = ws[XLSX.utils.encode_cell({ r: 0, c: 2 })]?.v;
-    let contractStartDate = null;
-    let forecastDate = null;
-    if (contractStart && typeof contractStart === "number") {
-      const d = excelDateToMonday(contractStart);
-      if (d) contractStartDate = d.toISOString().split("T")[0];
-    }
-    if (forecastVal && typeof forecastVal === "number") {
-      const d = excelDateToMonday(forecastVal);
-      if (d) forecastDate = d.toISOString().split("T")[0];
-    }
-
-    const [newPlan] = await db("job_plans").insert({
-      title: planTitle,
-      contract_start_date: contractStartDate,
-      forecast_date: forecastDate,
-    }).returning("*");
-    jobPlan = newPlan;
-    console.log(`[SharePoint] Job Plans: auto-created job plan "${planTitle}"`);
-  }
-
+  const jobPlan = await findOrCreateJobPlan(planTitle, ws, XLSX);
   if (!jobPlan) {
-    return { inserted: 0, updated: 0, unchanged: 0, processed: false, error: `${fileName}: failed to create/find job plan` };
+    return { ...emptyResult, error: `${fileName}: failed to create/find job plan` };
   }
 
   const existingLines = await db("job_plan_lines").where("job_plan_id", jobPlan.id).select("*");
@@ -831,42 +890,18 @@ async function parseAndProcessJobPlanFile(
 
   for (const [name, data] of personMap) {
     sortOrder++;
-    const weeklyAllocationsJson = JSON.stringify(data.weeklyAllocs);
-    const totalBudgetHours = Object.values(data.weeklyAllocs).reduce((s, pct) => s + (pct / 100) * STANDARD_WEEKLY_HOURS, 0);
-
-    const lineData = {
-      resource: name,
-      milestone: planTitle,
-      charge_out_level: data.rates.chargeOutRate ? `$${data.rates.chargeOutRate}/hr` : null,
-      panel_hourly_rate: data.rates.chargeOutRate,
-      discount_percent: data.rates.discountPercent ? data.rates.discountPercent * 100 : 0,
-      hourly_gross_cost: data.rates.hourlyGrossCost,
-      budget_hours: parseFloat(totalBudgetHours.toFixed(1)),
-      forecast_hours: parseFloat(totalBudgetHours.toFixed(1)),
-      weekly_allocations: weeklyAllocationsJson,
-      sort_order: sortOrder,
-    };
-
+    const { lineData, weeklyAllocationsJson } = buildLineData(name, data, planTitle, sortOrder);
     const existingLine = existingByResource.get(name.toLowerCase());
 
     if (existingLine) {
-      const changed = (
-        existingLine.weekly_allocations !== weeklyAllocationsJson ||
-        Math.abs((existingLine.budget_hours || 0) - lineData.budget_hours) > 0.05 ||
-        (existingLine.panel_hourly_rate || 0) !== (lineData.panel_hourly_rate || 0) ||
-        (existingLine.hourly_gross_cost || 0) !== (lineData.hourly_gross_cost || 0)
-      );
-      if (changed) {
+      if (hasLineChanged(existingLine, lineData, weeklyAllocationsJson)) {
         await db("job_plan_lines").where("id", existingLine.id).update(lineData);
         updated++;
       } else {
         unchanged++;
       }
     } else {
-      await db("job_plan_lines").insert({
-        job_plan_id: jobPlan.id,
-        ...lineData,
-      });
+      await db("job_plan_lines").insert({ job_plan_id: jobPlan.id, ...lineData });
       inserted++;
     }
   }

@@ -25,7 +25,7 @@ function createKnexConfig(): Knex.Knex.Config {
         database,
         user,
         password,
-        port: parseInt(process.env.MSSQL_PORT || "1433"),
+        port: Number.parseInt(process.env.MSSQL_PORT || "1433"),
         options: {
           encrypt: true,
           trustServerCertificate: false,

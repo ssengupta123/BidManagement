@@ -55,8 +55,8 @@ export default function Opportunities() {
     mutationFn: async (data: any) => {
       const res = await apiRequest("POST", "/api/opportunities", {
         ...data,
-        value: data.value ? parseFloat(data.value) : null,
-        margin: data.margin ? parseFloat(data.margin) / 100 : null,
+        value: data.value ? Number.parseFloat(data.value) : null,
+        margin: data.margin ? Number.parseFloat(data.margin) / 100 : null,
       });
       return res.json();
     },
@@ -103,8 +103,8 @@ export default function Opportunities() {
 
   const filtered = opportunities?.filter((opp) =>
     opp.name.toLowerCase().includes(search.toLowerCase()) ||
-    (opp.clientCode && opp.clientCode.toLowerCase().includes(search.toLowerCase())) ||
-    (opp.partner && opp.partner.toLowerCase().includes(search.toLowerCase()))
+    opp.clientCode?.toLowerCase().includes(search.toLowerCase()) ||
+    opp.partner?.toLowerCase().includes(search.toLowerCase())
   ) || [];
 
   const getStatusColor = (status: string | null) => {

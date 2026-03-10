@@ -129,20 +129,20 @@ function isExcelDate(val: any): boolean {
 
 function parseDateString(val: string): Date | null {
   const trimmed = val.trim();
-  const ddmmyyyy = trimmed.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/);
+  const ddmmyyyy = /^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/.exec(trimmed);
   if (ddmmyyyy) {
     const [, d, m, y] = ddmmyyyy;
-    const dt = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-    if (!isNaN(dt.getTime())) return dt;
+    const dt = new Date(Number.parseInt(y), Number.parseInt(m) - 1, Number.parseInt(d));
+    if (!Number.isNaN(dt.getTime())) return dt;
   }
-  const yyyymmdd = trimmed.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
+  const yyyymmdd = /^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/.exec(trimmed);
   if (yyyymmdd) {
     const [, y, m, d] = yyyymmdd;
-    const dt = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-    if (!isNaN(dt.getTime())) return dt;
+    const dt = new Date(Number.parseInt(y), Number.parseInt(m) - 1, Number.parseInt(d));
+    if (!Number.isNaN(dt.getTime())) return dt;
   }
   const dt = new Date(trimmed);
-  if (!isNaN(dt.getTime())) return dt;
+  if (!Number.isNaN(dt.getTime())) return dt;
   return null;
 }
 
@@ -312,7 +312,7 @@ function parseTimePlanLines(sheet: XLSX.WorkSheet): { lines: TimePlanLine[]; wee
   const getNum = (r: number, c: number | undefined) => {
     if (c === undefined) return 0;
     const v = getCellVal(r, c);
-    return typeof v === "number" ? v : parseFloat(String(v)) || 0;
+    return typeof v === "number" ? v : Number.parseFloat(String(v)) || 0;
   };
 
   const lines: TimePlanLine[] = [];
@@ -405,8 +405,8 @@ function parsePricingSheet(sheet: XLSX.WorkSheet): PricingMilestone[] {
       milestone,
       startDate: toISODate(getCellVal(startCol)),
       endDate: toISODate(getCellVal(endCol)),
-      weekNumber: typeof getCellVal(weekCol) === "number" ? getCellVal(weekCol) as number : parseInt(String(getCellVal(weekCol))) || 0,
-      costExGst: typeof getCellVal(costCol) === "number" ? getCellVal(costCol) as number : parseFloat(String(getCellVal(costCol))) || 0,
+      weekNumber: typeof getCellVal(weekCol) === "number" ? getCellVal(weekCol) as number : Number.parseInt(String(getCellVal(weekCol))) || 0,
+      costExGst: typeof getCellVal(costCol) === "number" ? getCellVal(costCol) as number : Number.parseFloat(String(getCellVal(costCol))) || 0,
     });
   }
 
@@ -483,12 +483,12 @@ function parseSheetSmart(sheet: XLSX.WorkSheet): { headers: string[]; rows: Reco
 
 function stripHtml(html: string): string {
   return html
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<\/?(p|div|li|td|tr|th|table|tbody|thead|span|a|b|i|strong|em|font|ul|ol)[^>]*>/gi, " ")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&#?\w+;/g, " ")
-    .replace(/\s+/g, " ")
+    .replaceAll(/<br\s*\/?>/gi, " ")
+    .replaceAll(/<\/?(p|div|li|td|tr|th|table|tbody|thead|span|a|b|i|strong|em|font|ul|ol)[^>]*>/gi, " ")
+    .replaceAll(/<[^>]+>/g, "")
+    .replaceAll(/&nbsp;/gi, " ")
+    .replaceAll(/&#?\w+;/g, " ")
+    .replaceAll(/\s+/g, " ")
     .trim();
 }
 
@@ -498,12 +498,12 @@ function parseSheetData(sheet: XLSX.WorkSheet): { headers: string[]; rows: Recor
     const mapped: Record<string, any> = {};
     for (const [key, val] of Object.entries(row)) {
       if (["value", "margin", "costExGst", "panelHourlyRate", "budgetHours", "forecastHours"].includes(key)) {
-        const num = parseFloat(String(val).replace(/[$,%]/g, ""));
-        if (!isNaN(num)) { mapped[key] = num; continue; }
+        const num = Number.parseFloat(String(val).replaceAll(/[$,%]/g, ""));
+        if (!Number.isNaN(num)) { mapped[key] = num; continue; }
       }
       if (["opportunityId", "bidId", "weekNumber"].includes(key)) {
-        const num = parseInt(String(val));
-        if (!isNaN(num)) { mapped[key] = num; continue; }
+        const num = Number.parseInt(String(val));
+        if (!Number.isNaN(num)) { mapped[key] = num; continue; }
       }
       if (["startDate", "endDate", "contractStartDate", "forecastDate", "dueDate", "dateIn"].includes(key)) {
         const iso = toISODate(val);
@@ -645,8 +645,8 @@ function SmartJobPlanPreview({ data, title, onTitleChange, onUpload, isPending }
                   </tr>
                 </thead>
                 <tbody>
-                  {data.pricingMilestones.map((m, i) => (
-                    <tr key={i} className="border-t">
+                  {data.pricingMilestones.map((m) => (
+                    <tr key={`${m.milestone}-${m.startDate}`} className="border-t">
                       <td className="p-2 font-medium">{m.milestone}</td>
                       <td className="p-2 text-muted-foreground">{m.startDate}</td>
                       <td className="p-2 text-muted-foreground">{m.endDate}</td>
@@ -684,9 +684,9 @@ function SmartJobPlanPreview({ data, title, onTitleChange, onUpload, isPending }
                 </tr>
               </thead>
               <tbody>
-                {data.lines.slice(0, 50).map((line, i) => (
-                  <tr key={i} className="border-t">
-                    <td className="p-2 text-muted-foreground">{i + 1}</td>
+                {data.lines.slice(0, 50).map((line) => (
+                  <tr key={`${line.milestone}-${line.resource}-${line.sortOrder}`} className="border-t">
+                    <td className="p-2 text-muted-foreground">{line.sortOrder}</td>
                     <td className="p-2 max-w-[150px] truncate font-medium">{line.milestone}</td>
                     <td className="p-2 max-w-[120px] truncate">{line.deliverable}</td>
                     <td className="p-2 whitespace-nowrap">{line.resource}</td>
@@ -725,6 +725,66 @@ function SmartJobPlanPreview({ data, title, onTitleChange, onUpload, isPending }
   );
 }
 
+function buildSmartJobPlanPayload(derivedTitle: string, smartData: SmartJobPlanData) {
+  return [{
+    title: derivedTitle,
+    bidId: null,
+    contractStartDate: smartData.meta.contractStartDate || null,
+    forecastDate: smartData.meta.forecastDate || null,
+    lines: smartData.lines.map((l) => ({
+      ...l,
+      weeklyAllocations: JSON.stringify(l.weeklyAllocations),
+    })),
+  }];
+}
+
+function buildJobPlanPayload(
+  derivedTitle: string,
+  parsedRows: Record<string, any>[],
+  derivedDates: { contractStartDate: Date | null; forecastDate: Date | null } | null,
+) {
+  const validRows = parsedRows.filter((r) => r.milestone);
+  const lines = validRows.map((row, i) => ({
+    milestone: String(row.milestone || "Unassigned"),
+    deliverable: row.deliverable || "",
+    resource: row.resource || "",
+    chargeOutLevel: row.chargeOutLevel || "Senior Consultant",
+    jobRole: row.jobRole || "",
+    panelHourlyRate: row.panelHourlyRate || 212.5,
+    discountPercent: row.discountPercent || 0,
+    hourlyGrossCost: row.hourlyGrossCost || 0,
+    budgetHours: row.budgetHours || 0,
+    forecastHours: row.forecastHours || 0,
+    actualHours: 0,
+    weeklyAllocations: "{}",
+    sortOrder: i + 1,
+  }));
+  return [{
+    title: derivedTitle,
+    bidId: null,
+    contractStartDate: derivedDates?.contractStartDate?.toISOString() || null,
+    forecastDate: derivedDates?.forecastDate?.toISOString() || null,
+    lines,
+  }];
+}
+
+function buildGenericPayload(
+  parsedRows: Record<string, any>[],
+  fields: { key: string; label: string; required?: boolean }[],
+) {
+  const knownKeys = new Set(fields.map((f) => f.key));
+  const allowedExtra = new Set(["name", "title", "value", "margin", "phase", "workType", "vat", "status", "comment", "casLead", "csdLead", "category", "partner", "clientContact", "clientCode", "opportunityId", "bidId", "stage", "casQualified", "csdQualified", "dueDate", "startDate", "expiryDate", "channel", "priority", "assignedTo", "careDecision", "dateIn", "source"]);
+  return parsedRows.map((r) => {
+    const clean: Record<string, any> = {};
+    for (const [k, v] of Object.entries(r)) {
+      if (knownKeys.has(k) || allowedExtra.has(k)) {
+        clean[k] = v;
+      }
+    }
+    return clean;
+  }).filter((r) => Object.keys(r).length > 0);
+}
+
 function UploadPanel({ type }: { type: UploadType }) {
   const [rawHeaders, setRawHeaders] = useState<string[]>([]);
   const [parsedRows, setParsedRows] = useState<Record<string, any>[]>([]);
@@ -739,13 +799,19 @@ function UploadPanel({ type }: { type: UploadType }) {
   const { toast } = useToast();
   const fields = FIELD_DEFS[type];
 
-  const endpoint = type === "opportunities" ? "/api/opportunities/upload"
-    : type === "bids" ? "/api/bids/upload"
-    : "/api/job-plans/upload";
+  const endpointMap: Record<UploadType, string> = {
+    opportunities: "/api/opportunities/upload",
+    bids: "/api/bids/upload",
+    "job-plans": "/api/job-plans/upload",
+  };
+  const endpoint = endpointMap[type];
 
-  const invalidateKeys = type === "opportunities" ? ["/api/opportunities", "/api/dashboard/stats"]
-    : type === "bids" ? ["/api/bids", "/api/dashboard/stats"]
-    : ["/api/job-plans"];
+  const invalidateKeysMap: Record<UploadType, string[]> = {
+    opportunities: ["/api/opportunities", "/api/dashboard/stats"],
+    bids: ["/api/bids", "/api/dashboard/stats"],
+    "job-plans": ["/api/job-plans"],
+  };
+  const invalidateKeys = invalidateKeysMap[type];
 
   const derivedTitle = useMemo(() => {
     if (jobPlanTitle.trim()) return jobPlanTitle.trim();
@@ -753,7 +819,7 @@ function UploadPanel({ type }: { type: UploadType }) {
     return "Uploaded Job Plan";
   }, [fileName, jobPlanTitle]);
 
-  const derivedDates = useMemo(() => {
+  const derivedDates = useMemo((): { contractStartDate: Date | null; forecastDate: Date | null } | null => {
     if (type !== "job-plans" || parsedRows.length === 0 || useSmartImport) return null;
     let minDate: Date | null = null;
     let maxDate: Date | null = null;
@@ -761,7 +827,7 @@ function UploadPanel({ type }: { type: UploadType }) {
       [r.startDate, r.endDate].forEach((d) => {
         if (!d) return;
         const dt = new Date(d);
-        if (isNaN(dt.getTime())) return;
+        if (Number.isNaN(dt.getTime())) return;
         if (!minDate || dt < minDate) minDate = dt;
         if (!maxDate || dt > maxDate) maxDate = dt;
       });
@@ -782,61 +848,15 @@ function UploadPanel({ type }: { type: UploadType }) {
 
   const uploadMutation = useMutation({
     mutationFn: async () => {
+      let payload;
       if (type === "job-plans" && useSmartImport && smartData) {
-        const payload = [{
-          title: derivedTitle,
-          bidId: null,
-          contractStartDate: smartData.meta.contractStartDate || null,
-          forecastDate: smartData.meta.forecastDate || null,
-          lines: smartData.lines.map((l) => ({
-            ...l,
-            weeklyAllocations: JSON.stringify(l.weeklyAllocations),
-          })),
-        }];
-        const res = await apiRequest("POST", endpoint, payload);
-        return res.json();
+        payload = buildSmartJobPlanPayload(derivedTitle, smartData);
+      } else if (type === "job-plans") {
+        payload = buildJobPlanPayload(derivedTitle, parsedRows, derivedDates);
+      } else {
+        payload = buildGenericPayload(parsedRows, fields);
       }
-
-      if (type === "job-plans") {
-        const validRows = parsedRows.filter((r) => r.milestone);
-        const lines = validRows.map((row, i) => ({
-          milestone: String(row.milestone || "Unassigned"),
-          deliverable: row.deliverable || "",
-          resource: row.resource || "",
-          chargeOutLevel: row.chargeOutLevel || "Senior Consultant",
-          jobRole: row.jobRole || "",
-          panelHourlyRate: row.panelHourlyRate || 212.5,
-          discountPercent: row.discountPercent || 0,
-          hourlyGrossCost: row.hourlyGrossCost || 0,
-          budgetHours: row.budgetHours || 0,
-          forecastHours: row.forecastHours || 0,
-          actualHours: 0,
-          weeklyAllocations: "{}",
-          sortOrder: i + 1,
-        }));
-        const payload = [{
-          title: derivedTitle,
-          bidId: null,
-          contractStartDate: derivedDates?.contractStartDate?.toISOString() || null,
-          forecastDate: derivedDates?.forecastDate?.toISOString() || null,
-          lines,
-        }];
-        const res = await apiRequest("POST", endpoint, payload);
-        return res.json();
-      }
-
-      const knownKeys = new Set(fields.map((f) => f.key));
-      const allowedExtra = new Set(["name", "title", "value", "margin", "phase", "workType", "vat", "status", "comment", "casLead", "csdLead", "category", "partner", "clientContact", "clientCode", "opportunityId", "bidId", "stage", "casQualified", "csdQualified", "dueDate", "startDate", "expiryDate", "channel", "priority", "assignedTo", "careDecision", "dateIn", "source"]);
-      const trimmed = parsedRows.map((r) => {
-        const clean: Record<string, any> = {};
-        for (const [k, v] of Object.entries(r)) {
-          if (knownKeys.has(k) || allowedExtra.has(k)) {
-            clean[k] = v;
-          }
-        }
-        return clean;
-      }).filter((r) => Object.keys(r).length > 0);
-      const res = await apiRequest("POST", endpoint, trimmed);
+      const res = await apiRequest("POST", endpoint, payload);
       return res.json();
     },
     onSuccess: (result) => {
@@ -845,9 +865,10 @@ function UploadPanel({ type }: { type: UploadType }) {
         const lineCount = useSmartImport && smartData ? smartData.lines.length : parsedRows.filter((r) => r.milestone).length;
         toast({ title: `Job plan "${derivedTitle}" created with ${lineCount} resource lines` });
       } else {
+        const isPlural = result.created !== 1;
         const label = type === "opportunities"
-          ? "opportunit" + (result.created !== 1 ? "ies" : "y")
-          : "bid" + (result.created !== 1 ? "s" : "");
+          ? `opportunit${isPlural ? "ies" : "y"}`
+          : `bid${isPlural ? "s" : ""}`;
         toast({
           title: `${result.created} ${label} uploaded`,
           description: result.errors?.length > 0 ? `${result.errors.length} row(s) had errors` : undefined,
@@ -1068,11 +1089,11 @@ function UploadPanel({ type }: { type: UploadType }) {
                 </tr>
               </thead>
               <tbody>
-                {parsedRows.slice(0, 50).map((row, i) => {
+                {parsedRows.slice(0, 50).map((row, rowIndex) => {
                   const isValid = requiredField ? !!row[requiredField.key] : true;
                   return (
-                    <tr key={i} className={`border-t ${isValid ? "" : "bg-destructive/5"}`}>
-                      <td className="p-2 text-muted-foreground">{i + 1}</td>
+                    <tr key={`row-${String(row[fields[0]?.key] ?? rowIndex)}-${rowIndex}`} className={`border-t ${isValid ? "" : "bg-destructive/5"}`}>
+                      <td className="p-2 text-muted-foreground">{rowIndex + 1}</td>
                       {displayHeaders.map((h) => (
                         <td key={h} className="p-2 max-w-[200px] truncate">{String(row[h] ?? "")}</td>
                       ))}
@@ -1090,18 +1111,22 @@ function UploadPanel({ type }: { type: UploadType }) {
         </div>
       )}
 
-      {validRows.length > 0 && (
-        <Button
-          onClick={() => uploadMutation.mutate()}
-          disabled={uploadMutation.isPending}
-          className="w-full"
-          data-testid={`button-upload-${type}`}
-        >
-          {uploadMutation.isPending ? "Uploading..." : type === "job-plans"
-            ? `Create Job Plan with ${validRows.length} resource lines`
-            : `Upload ${validRows.length} ${type === "opportunities" ? "Opportunities" : "Bids"}`}
-        </Button>
-      )}
+      {validRows.length > 0 && (() => {
+        const typeLabel = type === "opportunities" ? "Opportunities" : "Bids";
+        const buttonLabel = type === "job-plans"
+          ? `Create Job Plan with ${validRows.length} resource lines`
+          : `Upload ${validRows.length} ${typeLabel}`;
+        return (
+          <Button
+            onClick={() => uploadMutation.mutate()}
+            disabled={uploadMutation.isPending}
+            className="w-full"
+            data-testid={`button-upload-${type}`}
+          >
+            {uploadMutation.isPending ? "Uploading..." : buttonLabel}
+          </Button>
+        );
+      })()}
     </div>
   );
 }
@@ -1294,8 +1319,8 @@ function SharePointSyncPanel() {
                   {syncResults[ds.id].errors && syncResults[ds.id].errors.length > 0 && (
                     <div className="text-destructive">
                       <p className="font-medium">Errors ({syncResults[ds.id].errors.length}):</p>
-                      {syncResults[ds.id].errors.slice(0, 5).map((err: string, i: number) => (
-                        <p key={i} className="ml-2">• {err}</p>
+                      {syncResults[ds.id].errors.slice(0, 5).map((err: string) => (
+                        <p key={err} className="ml-2">• {err}</p>
                       ))}
                       {syncResults[ds.id].errors.length > 5 && (
                         <p className="ml-2 text-muted-foreground">...and {syncResults[ds.id].errors.length - 5} more</p>

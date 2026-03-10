@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Plus, Calendar, DollarSign, ClipboardList, Trash2, FileText } from "lucide-react";
+import { Plus, Calendar, ClipboardList, Trash2, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -126,14 +126,7 @@ export default function JobPlans() {
         </Dialog>
       </div>
 
-      {!plans?.length ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <ClipboardList className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">No job plans yet. Create one to get started.</p>
-          </CardContent>
-        </Card>
-      ) : (
+      {plans?.length ? (
         <div className="space-y-3">
           {plans.map((plan, idx) => {
             const linkedBid = bids?.find((b) => b.id === plan.bidId);
@@ -181,6 +174,13 @@ export default function JobPlans() {
             );
           })}
         </div>
+      ) : (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <ClipboardList className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">No job plans yet. Create one to get started.</p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

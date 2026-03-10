@@ -54,7 +54,7 @@ interface ParsedBid {
 function parseCSV(text: string): ParsedBid[] {
   const lines = text.trim().split("\n");
   if (lines.length < 2) return [];
-  const rawHeaders = lines[0].split(",").map((h) => h.trim().replace(/^"|"$/g, ""));
+  const rawHeaders = lines[0].split(",").map((h) => h.trim().replaceAll(/^"|"$/g, ""));
 
   const headerMap: Record<string, string> = {
     title: "title",
@@ -77,12 +77,12 @@ function parseCSV(text: string): ParsedBid[] {
   const headers = rawHeaders.map((h) => headerMap[h.toLowerCase()] || h);
 
   return lines.slice(1).filter((l) => l.trim()).map((line) => {
-    const values = line.match(/("([^"]*?)"|[^,]*)/g)?.map((v) => v.trim().replace(/^"|"$/g, "")) || [];
+    const values = line.match(/("([^"]*?)"|[^,]*)/g)?.map((v) => v.trim().replaceAll(/^"|"$/g, "")) || [];
     const row: any = {};
     headers.forEach((h, i) => {
       const val = values[i] || "";
       if (h === "opportunityId" && val) {
-        row[h] = parseInt(val) || undefined;
+        row[h] = Number.parseInt(val) || undefined;
       } else if (val) {
         row[h] = val;
       }
@@ -118,17 +118,13 @@ function UploadDialog() {
     onError: (e: Error) => toast({ title: "Upload failed", description: e.message, variant: "destructive" }),
   });
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const text = ev.target?.result as string;
-      setRawText(text);
-      setParsedData(parseCSV(text));
-    };
-    reader.readAsText(file);
+    const text = await file.text();
+    setRawText(text);
+    setParsedData(parseCSV(text));
   };
 
   const handlePaste = (text: string) => {
@@ -201,7 +197,7 @@ function UploadDialog() {
                   </thead>
                   <tbody>
                     {parsedData.map((row, i) => (
-                      <tr key={i} className="border-b last:border-0">
+                      <tr key={`${row.title}-${i}`} className="border-b last:border-0">
                         <td className="p-2 text-muted-foreground">{i + 1}</td>
                         <td className="p-2 font-medium" data-testid={`preview-title-${i}`}>{row.title}</td>
                         <td className="p-2">
@@ -324,8 +320,8 @@ export default function Bids() {
                               <span className="font-medium text-foreground">{bid.careScore.toFixed(1)}</span>/10
                             </span>
                           )}
-                          <span>CAS: {bid.casQualified === "qualified" ? "Pass" : bid.casQualified === "rejected" ? "Fail" : "Pending"}</span>
-                          <span>CSD: {bid.csdQualified === "qualified" ? "Pass" : bid.csdQualified === "rejected" ? "Fail" : "Pending"}</span>
+                          <span>CAS: {(() => { if (bid.casQualified === "qualified") return "Pass"; if (bid.casQualified === "rejected") return "Fail"; return "Pending"; })()}</span>
+                          <span>CSD: {(() => { if (bid.csdQualified === "qualified") return "Pass"; if (bid.csdQualified === "rejected") return "Fail"; return "Pending"; })()}</span>
                         </div>
                       </div>
 

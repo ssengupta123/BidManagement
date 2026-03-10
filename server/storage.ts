@@ -12,7 +12,7 @@ import type {
 function toSnake(obj: Record<string, any>): Record<string, any> {
   const result: Record<string, any> = {};
   for (const [key, value] of Object.entries(obj)) {
-    const snakeKey = key.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`);
+    const snakeKey = key.replaceAll(/[A-Z]/g, (m) => `_${m.toLowerCase()}`);
     result[snakeKey] = value;
   }
   return result;
@@ -21,7 +21,7 @@ function toSnake(obj: Record<string, any>): Record<string, any> {
 function toCamel<T>(row: Record<string, any>): T {
   const result: Record<string, any> = {};
   for (const [key, value] of Object.entries(row)) {
-    const camelKey = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+    const camelKey = key.replaceAll(/_([a-z])/g, (_, c: string) => c.toUpperCase());
     result[camelKey] = value;
   }
   return result as T;

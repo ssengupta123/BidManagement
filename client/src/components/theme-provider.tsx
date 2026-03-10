@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, useCallback, useMemo, createContext, useContext } from "react";
 
 type Theme = "light" | "dark";
 
@@ -9,10 +9,10 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType>({ theme: "light", toggleTheme: () => {} });
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export function ThemeProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== "undefined") {
-      return (localStorage.getItem("theme") as Theme) || "light";
+    if (typeof globalThis !== "undefined") {
+      return (globalThis.localStorage.getItem("theme") as Theme) || "light";
     }
     return "light";
   });
@@ -21,13 +21,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const root = document.documentElement;
     root.classList.remove("light", "dark");
     root.classList.add(theme);
-    localStorage.setItem("theme", theme);
+    globalThis.localStorage.setItem("theme", theme);
   }, [theme]);
 
-  const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  const toggleTheme = useCallback(() => setTheme((prev) => (prev === "light" ? "dark" : "light")), []);
+
+  const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

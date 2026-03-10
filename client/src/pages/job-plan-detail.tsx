@@ -3,8 +3,8 @@ import { useParams, Link } from "wouter";
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import {
   ArrowLeft, Plus, Trash2, Save, ChevronDown, ChevronRight,
-  DollarSign, Clock, Users, TrendingUp, BarChart3, Calendar, MapPin,
-  Pencil, X, Check, ChevronsUpDown, Minimize2, Maximize2,
+  DollarSign, Clock, TrendingUp, BarChart3, Calendar, MapPin,
+  Pencil, X, Check, Minimize2, Maximize2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,12 @@ import type { JobPlan, JobPlanLine } from "@shared/schema";
 
 const CHARGE_LEVELS = ["Partner", "Principal", "Director", "Senior Manager", "Manager", "Senior Consultant", "Consultant"];
 const HOURS_PER_DAY = 8;
+
+function getMarginColor(margin: number): string {
+  if (margin >= 40) return "text-chart-2";
+  if (margin >= 25) return "text-chart-4";
+  return "text-destructive";
+}
 
 function getWeekDates(startDate: Date, numWeeks: number): Date[] {
   const weeks: Date[] = [];
@@ -84,7 +90,7 @@ export default function JobPlanDetail() {
   const [editingLine, setEditingLine] = useState<number | null>(null);
   const [editData, setEditData] = useState<Partial<JobPlanLine>>({});
   const [allocationView, setAllocationView] = useState<number | null>(null);
-  const [numWeeks, setNumWeeks] = useState(26);
+  const [numWeeks] = useState(26);
   const [projectState, setProjectState] = useState("VIC");
 
   const { data: plan, isLoading: planLoading } = useQuery<JobPlan>({ queryKey: ["/api/job-plans", planId] });
@@ -158,7 +164,7 @@ export default function JobPlanDetail() {
   }, [plan?.contractStartDate, numWeeks]);
 
   const toggleMilestone = (ms: string) => {
-    setExpandedMilestones((prev) => ({ ...prev, [ms]: prev[ms] === false ? true : false }));
+    setExpandedMilestones((prev) => ({ ...prev, [ms]: prev[ms] === false }));
   };
 
   const startEdit = (line: JobPlanLine) => {
@@ -266,7 +272,7 @@ export default function JobPlanDetail() {
         apiRequest("DELETE", `/api/job-plan-lines/${l.id}`)
       ));
       queryClient.invalidateQueries({ queryKey: ["/api/job-plans", planId, "lines"] });
-      toast({ title: "Milestone deleted", description: `Removed "${milestone}" and ${milestoneLines.length} line${milestoneLines.length !== 1 ? "s" : ""}` });
+      toast({ title: "Milestone deleted", description: `Removed "${milestone}" and ${milestoneLines.length} line${milestoneLines.length === 1 ? "" : "s"}` });
     } catch (e: any) {
       toast({ title: "Error deleting milestone", description: e.message, variant: "destructive" });
     }
@@ -341,7 +347,7 @@ export default function JobPlanDetail() {
               </div>
               <span className="text-[13px] text-muted-foreground font-medium">Gross Margin</span>
             </div>
-            <p className={`text-xl font-bold ${totals.grossMargin >= 40 ? "text-chart-2" : totals.grossMargin >= 25 ? "text-chart-4" : "text-destructive"}`} data-testid="text-gross-margin">
+            <p className={`text-xl font-bold ${getMarginColor(totals.grossMargin)}`} data-testid="text-gross-margin">
               {totals.grossMargin.toFixed(1)}%
             </p>
           </CardContent>
@@ -491,7 +497,7 @@ function MilestoneGroup({
   getEffectiveAllocs, onFlushAllocations,
   projectState, groupTotalRevenue, groupTotalHours, groupMargin,
   onRenameMilestone, onDeleteMilestone,
-}: {
+}: Readonly<{
   milestone: string;
   lines: JobPlanLine[];
   isExpanded: boolean;
@@ -516,7 +522,7 @@ function MilestoneGroup({
   groupMargin: number;
   onRenameMilestone: (oldName: string, newName: string) => void;
   onDeleteMilestone: (milestone: string) => void;
-}) {
+}>) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(milestone);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -528,7 +534,7 @@ function MilestoneGroup({
           <div className="flex items-center gap-2">
             {isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
             {isRenaming ? (
-              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-1" role="presentation" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                 <Input
                   className="h-8 text-sm w-48"
                   value={renameValue}
@@ -566,7 +572,7 @@ function MilestoneGroup({
         <td className="text-right p-2 text-muted-foreground">{formatCurrency(groupTotalRevenue)}</td>
         <td className="text-right p-2 text-muted-foreground">{groupMargin.toFixed(1)}%</td>
         <td className="p-2">
-          <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+          <div className="flex gap-1" role="presentation" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
             <Button
               size="sm"
               variant="ghost"
@@ -587,7 +593,7 @@ function MilestoneGroup({
             </Button>
             {confirmDelete ? (
               <div className="flex items-center gap-1">
-                <span className="text-[13px] text-destructive whitespace-nowrap">Delete {lines.length} line{lines.length !== 1 ? "s" : ""}?</span>
+                <span className="text-[13px] text-destructive whitespace-nowrap">Delete {lines.length} line{lines.length === 1 ? "" : "s"}?</span>
                 <Button size="sm" variant="destructive" className="h-7 px-2 text-[13px]" onClick={() => { onDeleteMilestone(milestone); setConfirmDelete(false); }} data-testid={`button-confirm-delete-milestone-${milestone}`}>Yes</Button>
                 <Button size="sm" variant="ghost" className="h-7 px-2 text-[13px]" onClick={() => setConfirmDelete(false)}>No</Button>
               </div>
@@ -640,7 +646,7 @@ function MilestoneGroup({
 function LineRow({
   line, calcs, isEditing, editData, onStartEdit, onEditChange, onSaveEdit, onCancelEdit, onDelete,
   showAlloc, onToggleAlloc, weeks, allocs, onSetAllocation, onFlushAllocations, projectState,
-}: {
+}: Readonly<{
   line: JobPlanLine;
   calcs: LineCalcs;
   isEditing: boolean;
@@ -657,66 +663,64 @@ function LineRow({
   onSetAllocation: (weekKey: string, val: number) => void;
   onFlushAllocations: () => void;
   projectState: string;
-}) {
+}>) {
 
   const allocSummary = useMemo(() => {
-    const entries = Object.entries(allocs).filter(([, v]) => (v as number) > 0).sort(([a], [b]) => a.localeCompare(b));
+    const entries = Object.entries(allocs).filter(([, v]) => v > 0).sort(([a], [b]) => a.localeCompare(b));
     if (entries.length === 0) return null;
     const firstDate = new Date(entries[0][0]);
-    const lastDate = new Date(entries[entries.length - 1][0]);
-    const avgPct = Math.round(entries.reduce((sum, [, v]) => sum + (v as number), 0) / entries.length);
+    const lastDate = new Date(entries.at(-1)![0]);
+    const avgPct = Math.round(entries.reduce((sum, [, v]) => sum + v, 0) / entries.length);
     const fmt = (d: Date) => d.toLocaleDateString("en-AU", { month: "short", year: "2-digit" });
     return { from: fmt(firstDate), to: fmt(lastDate), weeks: entries.length, avgPct };
   }, [allocs]);
 
   if (isEditing) {
     return (
-      <>
-        <tr className="border-b bg-primary/5" data-testid={`row-line-edit-${line.id}`}>
-          <td className="p-1.5 pl-8 sticky left-0 bg-primary/5 z-10">
-            <Input className="h-8 text-sm" value={editData.resource || ""} onChange={(e) => onEditChange({ ...editData, resource: e.target.value })} placeholder="Name" />
-          </td>
-          <td className="p-1.5">
-            <Select value={editData.chargeOutLevel || ""} onValueChange={(v) => onEditChange({ ...editData, chargeOutLevel: v })}>
-              <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {CHARGE_LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </td>
-          <td className="p-1.5">
-            <Input className="h-8 text-sm" value={editData.jobRole || ""} onChange={(e) => onEditChange({ ...editData, jobRole: e.target.value })} placeholder="Role" />
-          </td>
-          <td className="p-1.5">
-            <Input className="h-8 text-sm text-right" type="number" value={editData.panelHourlyRate || 0} onChange={(e) => onEditChange({ ...editData, panelHourlyRate: parseFloat(e.target.value) || 0 })} />
-          </td>
-          <td className="p-1.5">
-            <Input className="h-8 text-sm text-right" type="number" value={editData.discountPercent || 0} onChange={(e) => onEditChange({ ...editData, discountPercent: parseFloat(e.target.value) || 0 })} />
-          </td>
-          <td className="p-1.5 text-right text-muted-foreground">
-            ${((editData.panelHourlyRate || 0) * (1 - (editData.discountPercent || 0) / 100)).toFixed(2)}
-          </td>
-          <td className="p-1.5">
-            <Input className="h-8 text-sm text-right" type="number" value={editData.hourlyGrossCost || 0} onChange={(e) => onEditChange({ ...editData, hourlyGrossCost: parseFloat(e.target.value) || 0 })} />
-          </td>
-          <td className="p-1.5">
-            <Input className="h-8 text-sm text-right" type="number" value={editData.budgetHours || 0} onChange={(e) => onEditChange({ ...editData, budgetHours: parseFloat(e.target.value) || 0 })} />
-          </td>
-          <td className="p-1.5">
-            <Input className="h-8 text-sm text-right" type="number" value={editData.forecastHours || 0} onChange={(e) => onEditChange({ ...editData, forecastHours: parseFloat(e.target.value) || 0 })} />
-          </td>
-          <td className="p-1.5 text-right text-muted-foreground">
-            {formatCurrency((editData.forecastHours || 0) * ((editData.panelHourlyRate || 0) * (1 - (editData.discountPercent || 0) / 100)))}
-          </td>
-          <td className="p-1.5"></td>
-          <td className="p-1.5">
-            <div className="flex gap-1">
-              <Button size="sm" variant="default" className="h-7 px-2 text-[13px]" onClick={onSaveEdit}><Save className="h-3 w-3" /></Button>
-              <Button size="sm" variant="ghost" className="h-7 px-2 text-[13px]" onClick={onCancelEdit}>Cancel</Button>
-            </div>
-          </td>
-        </tr>
-      </>
+      <tr className="border-b bg-primary/5" data-testid={`row-line-edit-${line.id}`}>
+        <td className="p-1.5 pl-8 sticky left-0 bg-primary/5 z-10">
+          <Input className="h-8 text-sm" value={editData.resource || ""} onChange={(e) => onEditChange({ ...editData, resource: e.target.value })} placeholder="Name" />
+        </td>
+        <td className="p-1.5">
+          <Select value={editData.chargeOutLevel || ""} onValueChange={(v) => onEditChange({ ...editData, chargeOutLevel: v })}>
+            <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {CHARGE_LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </td>
+        <td className="p-1.5">
+          <Input className="h-8 text-sm" value={editData.jobRole || ""} onChange={(e) => onEditChange({ ...editData, jobRole: e.target.value })} placeholder="Role" />
+        </td>
+        <td className="p-1.5">
+          <Input className="h-8 text-sm text-right" type="number" value={editData.panelHourlyRate || 0} onChange={(e) => onEditChange({ ...editData, panelHourlyRate: Number.parseFloat(e.target.value) || 0 })} />
+        </td>
+        <td className="p-1.5">
+          <Input className="h-8 text-sm text-right" type="number" value={editData.discountPercent || 0} onChange={(e) => onEditChange({ ...editData, discountPercent: Number.parseFloat(e.target.value) || 0 })} />
+        </td>
+        <td className="p-1.5 text-right text-muted-foreground">
+          ${((editData.panelHourlyRate || 0) * (1 - (editData.discountPercent || 0) / 100)).toFixed(2)}
+        </td>
+        <td className="p-1.5">
+          <Input className="h-8 text-sm text-right" type="number" value={editData.hourlyGrossCost || 0} onChange={(e) => onEditChange({ ...editData, hourlyGrossCost: Number.parseFloat(e.target.value) || 0 })} />
+        </td>
+        <td className="p-1.5">
+          <Input className="h-8 text-sm text-right" type="number" value={editData.budgetHours || 0} onChange={(e) => onEditChange({ ...editData, budgetHours: Number.parseFloat(e.target.value) || 0 })} />
+        </td>
+        <td className="p-1.5">
+          <Input className="h-8 text-sm text-right" type="number" value={editData.forecastHours || 0} onChange={(e) => onEditChange({ ...editData, forecastHours: Number.parseFloat(e.target.value) || 0 })} />
+        </td>
+        <td className="p-1.5 text-right text-muted-foreground">
+          {formatCurrency((editData.forecastHours || 0) * ((editData.panelHourlyRate || 0) * (1 - (editData.discountPercent || 0) / 100)))}
+        </td>
+        <td className="p-1.5"></td>
+        <td className="p-1.5">
+          <div className="flex gap-1">
+            <Button size="sm" variant="default" className="h-7 px-2 text-[13px]" onClick={onSaveEdit}><Save className="h-3 w-3" /></Button>
+            <Button size="sm" variant="ghost" className="h-7 px-2 text-[13px]" onClick={onCancelEdit}>Cancel</Button>
+          </div>
+        </td>
+      </tr>
     );
   }
 
@@ -725,14 +729,17 @@ function LineRow({
       <tr className="border-b hover:bg-muted/10 group" data-testid={`row-line-${line.id}`}>
         <td className="p-2 pl-8 sticky left-0 bg-card z-10 group-hover:bg-muted/10">
           <div className="flex items-center gap-2">
-            <span className="truncate cursor-pointer hover:text-primary transition-colors" onClick={onStartEdit} data-testid={`text-resource-${line.id}`}>
+            <span className="truncate cursor-pointer hover:text-primary transition-colors" role="button" tabIndex={0} onClick={onStartEdit} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onStartEdit(); }} data-testid={`text-resource-${line.id}`}>
               {line.resource || <span className="text-muted-foreground italic">Click to set</span>}
             </span>
           </div>
           {line.deliverable && <p className="text-[13px] text-muted-foreground truncate mt-0.5">{line.deliverable}</p>}
           <div
             className="flex items-center gap-1.5 mt-1 cursor-pointer group/alloc"
+            role="button"
+            tabIndex={0}
             onClick={onToggleAlloc}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onToggleAlloc(); }}
             data-testid={`button-alloc-${line.id}`}
           >
             <Calendar className="h-2.5 w-2.5 text-muted-foreground/60 shrink-0" />
@@ -757,7 +764,7 @@ function LineRow({
         <td className="p-2 text-right">{(line.budgetHours || 0).toLocaleString()}</td>
         <td className="p-2 text-right">{(line.forecastHours || 0).toLocaleString()}</td>
         <td className="p-2 text-right font-medium">{formatCurrency(calcs.forecastDollars)}</td>
-        <td className={`p-2 text-right font-medium ${calcs.grossMargin >= 40 ? "text-chart-2" : calcs.grossMargin >= 25 ? "text-chart-4" : "text-destructive"}`}>
+        <td className={`p-2 text-right font-medium ${getMarginColor(calcs.grossMargin)}`}>
           {calcs.grossMargin.toFixed(1)}%
         </td>
         <td className="p-2">
@@ -791,14 +798,14 @@ function LineRow({
 
 function AllocationGrid({
   lineId, weeks, allocs, onSetAllocation, onFlushAllocations, projectState,
-}: {
+}: Readonly<{
   lineId: number;
   weeks: Date[];
   allocs: Record<string, number>;
   onSetAllocation: (weekKey: string, val: number) => void;
   onFlushAllocations: () => void;
   projectState: string;
-}) {
+}>) {
   const dragRef = useRef<{ active: boolean; paintVal: number; startIdx: number; painted: Set<number> }>({
     active: false, paintVal: 0, startIdx: -1, painted: new Set(),
   });
@@ -808,10 +815,10 @@ function AllocationGrid({
     const groups: { month: string; startIdx: number; count: number }[] = [];
     weeks.forEach((w, i) => {
       const label = w.toLocaleDateString("en-AU", { month: "short" });
-      if (groups.length === 0 || groups[groups.length - 1].month !== label) {
+      if (groups.length === 0 || groups.at(-1)!.month !== label) {
         groups.push({ month: label, startIdx: i, count: 1 });
       } else {
-        groups[groups.length - 1].count++;
+        groups.at(-1)!.count++;
       }
     });
     return groups;
@@ -864,8 +871,8 @@ function AllocationGrid({
 
   useEffect(() => {
     const onUp = () => handleMouseUp();
-    window.addEventListener("mouseup", onUp);
-    return () => window.removeEventListener("mouseup", onUp);
+    globalThis.addEventListener("mouseup", onUp);
+    return () => globalThis.removeEventListener("mouseup", onUp);
   }, [handleMouseUp]);
 
   const isDragging = dragRange !== null;
@@ -902,12 +909,13 @@ function AllocationGrid({
               </tr>
               <tr>
                 {weeks.map((w, i) => {
+                  const weekKey = w.toISOString().split("T")[0];
                   const hasHoliday = getHolidaysInWeek(w, projectState).length > 0;
                   const day = w.getDate();
                   const isFirstOfMonth = monthGroups.some((g) => g.startIdx === i);
                   return (
                     <th
-                      key={i}
+                      key={weekKey}
                       className={`text-[13px] font-normal px-0 pb-0.5 w-12 text-center ${hasHoliday ? "text-amber-600 dark:text-amber-400 font-bold" : "text-muted-foreground/60"} ${isFirstOfMonth && i !== 0 ? "border-l border-border/30" : ""}`}
                     >
                       {day}{hasHoliday ? "*" : ""}
@@ -929,7 +937,7 @@ function AllocationGrid({
                   const inDrag = isDragging && i >= dragLo && i <= dragHi;
 
                   let cellStyle: React.CSSProperties = {};
-                  let cellText = "text-muted-foreground/30";
+                  let cellText: string;
                   let cellExtra = "";
                   if (val === 0) {
                     cellStyle = { background: hasHoliday ? "repeating-linear-gradient(135deg, transparent, transparent 3px, rgba(251,191,36,0.08) 3px, rgba(251,191,36,0.08) 6px)" : undefined };
@@ -955,7 +963,7 @@ function AllocationGrid({
                   }
 
                   return (
-                    <td key={i} className={`p-0 ${isFirstOfMonth && i !== 0 ? "border-l border-border/30" : ""}`}>
+                    <td key={key} className={`p-0 ${isFirstOfMonth && i !== 0 ? "border-l border-border/30" : ""}`}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div
@@ -1030,7 +1038,7 @@ function AllocationGrid({
   );
 }
 
-function NewMilestoneDialog({ onAdd }: { onAdd: (milestone: string) => void }) {
+function NewMilestoneDialog({ onAdd }: Readonly<{ onAdd: (milestone: string) => void }>) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
 

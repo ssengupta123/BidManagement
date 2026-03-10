@@ -103,7 +103,7 @@ export default function ResourceAllocation() {
         .length;
     });
 
-    const result = [...byResource.values()].sort((a, b) => b.overallocatedWeeks - a.overallocatedWeeks || a.name.localeCompare(b.name));
+    const result = [...byResource.values()].sort((a, b) => (b.overallocatedWeeks - a.overallocatedWeeks) || a.name.localeCompare(b.name));
     return result;
   }, [allLines, planMap, weeks]);
 
@@ -222,16 +222,17 @@ export default function ResourceAllocation() {
                     <th className="text-left p-2 pl-4 font-medium text-muted-foreground w-[200px] sticky left-0 bg-muted/30 z-10">Resource</th>
                     <th className="text-left p-2 font-medium text-muted-foreground w-[100px]">Level</th>
                     <th className="text-center p-2 font-medium text-muted-foreground w-[60px]">Status</th>
-                    {weeks.map((w, i) => {
+                    {weeks.map((w) => {
+                      const weekKey = w.toISOString().split("T")[0];
                       const isMonthStart = w.getDate() <= 7;
                       return (
-                        <th key={i} className={`p-0.5 font-normal text-center w-[40px] ${isMonthStart ? "border-l border-border/60" : ""}`}>
+                        <th key={weekKey} className={`p-0.5 font-normal text-center w-[40px] ${isMonthStart ? "border-l border-border/60" : ""}`}>
                           {isMonthStart && (
                             <div className="text-[11px] text-muted-foreground font-semibold">
                               {w.toLocaleDateString("en-AU", { month: "short" })}
                             </div>
                           )}
-                          <div className="text-[10px] text-muted-foreground/50">W{i + 1}</div>
+                          <div className="text-[10px] text-muted-foreground/50">{w.toLocaleDateString("en-AU", { day: "numeric" })}</div>
                         </th>
                       );
                     })}
@@ -270,12 +271,12 @@ export default function ResourceAllocation() {
 
 function ResourceRow({
   resource, weeks, isExpanded, onToggle,
-}: {
+}: Readonly<{
   resource: ResourceSummary;
   weeks: Date[];
   isExpanded: boolean;
   onToggle: () => void;
-}) {
+}>) {
   const hasOveralloc = resource.overallocatedWeeks > 0;
 
   return (
@@ -327,11 +328,13 @@ function ResourceRow({
             textClass = "text-sky-900";
           }
 
+          const contributionDetails = wd?.contributions.map((c) => `\n  ${c.planTitle} / ${c.milestone}: ${c.pct}%`).join("") ?? "";
+
           return (
             <td
-              key={i}
+              key={key}
               className={`p-0 text-center ${isMonthStart ? "border-l border-border/60" : ""}`}
-              title={`${resource.name} - W${i + 1}: ${totalPct}%${wd?.contributions.map((c) => `\n  ${c.planTitle} / ${c.milestone}: ${c.pct}%`).join("") || ""}`}
+              title={`${resource.name} - W${i + 1}: ${totalPct}%${contributionDetails}`}
             >
               <div
                 style={cellStyle}
@@ -360,7 +363,7 @@ function ResourceRow({
                 });
                 const sortedKeys = [...planWeeks.keys()].sort();
                 const from = sortedKeys.length > 0 ? new Date(sortedKeys[0]).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "2-digit" }) : "—";
-                const to = sortedKeys.length > 0 ? new Date(sortedKeys[sortedKeys.length - 1]).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "2-digit" }) : "—";
+                const to = sortedKeys.length > 0 ? new Date(sortedKeys.at(-1)!).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "2-digit" }) : "—";
                 const avgPct = sortedKeys.length > 0 ? Math.round([...planWeeks.values()].reduce((s, v) => s + v, 0) / sortedKeys.length) : 0;
 
                 return (
