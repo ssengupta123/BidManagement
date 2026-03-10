@@ -141,5 +141,30 @@ export async function runMigrations() {
     console.log("Created table: messages");
   }
 
+  if (!(await db.schema.hasTable("data_sources"))) {
+    await db.schema.createTable("data_sources", (t) => {
+      t.increments("id").primary();
+      t.string("name", 500).notNullable();
+      t.string("type", 100).notNullable().defaultTo("sharepoint");
+      t.string("sync_target", 100).notNullable();
+      t.string("status", 100).notNullable().defaultTo("configured");
+      t.text("connection_info").nullable();
+      t.integer("records_processed").defaultTo(0);
+      t.dateTime("last_sync_at").nullable();
+      t.dateTime("created_at").notNullable().defaultTo(db.fn.now());
+    });
+    console.log("Created table: data_sources");
+  }
+
+  if (await db.schema.hasTable("opportunities")) {
+    const hasSpCol = await db.schema.hasColumn("opportunities", "sharepoint_id");
+    if (!hasSpCol) {
+      await db.schema.alterTable("opportunities", (t) => {
+        t.string("sharepoint_id", 255).nullable();
+      });
+      console.log("Added sharepoint_id column to opportunities");
+    }
+  }
+
   console.log("Migrations complete");
 }

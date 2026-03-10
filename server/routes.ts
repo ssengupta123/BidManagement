@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertOpportunitySchema, insertBidSchema, insertJobPlanSchema, insertJobPlanLineSchema } from "@shared/schema";
+import { insertOpportunitySchema, insertBidSchema, insertJobPlanSchema, insertJobPlanLineSchema, insertDataSourceSchema } from "@shared/schema";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -856,6 +856,125 @@ ${bid.resourcePlan || 'Not available'}`
   app.delete("/api/job-plan-lines/:id", async (req, res) => {
     await storage.deleteJobPlanLine(Number(req.params.id));
     res.status(204).send();
+  });
+
+  app.get("/api/data-sources", async (_req, res) => {
+    const sources = await storage.getAllDataSources();
+    res.json(sources);
+  });
+
+  app.post("/api/data-sources", async (req, res) => {
+    try {
+      const data = insertDataSourceSchema.parse(req.body);
+      const ds = await storage.createDataSource(data);
+      res.status(201).json(ds);
+    } catch (e: any) {
+      res.status(400).json({ message: e.message });
+    }
+  });
+
+  app.patch("/api/data-sources/:id", async (req, res) => {
+    try {
+      const data = insertDataSourceSchema.partial().parse(req.body);
+      const ds = await storage.updateDataSource(Number(req.params.id), data);
+      if (!ds) return res.status(404).json({ message: "Not found" });
+      res.json(ds);
+    } catch (e: any) {
+      res.status(400).json({ message: e.message });
+    }
+  });
+
+  app.delete("/api/data-sources/:id", async (req, res) => {
+    await storage.deleteDataSource(Number(req.params.id));
+    res.status(204).send();
+  });
+
+  app.post("/api/data-sources/seed", async (_req, res) => {
+    try {
+      const existing = await storage.getAllDataSources();
+      const seeded: any[] = [];
+
+      const hasOpps = existing.some(ds => ds.syncTarget === "opportunities");
+      if (!hasOpps) {
+        const ds = await storage.createDataSource({
+          name: "SharePoint Opportunity Qualification Tracker",
+          type: "sharepoint",
+          syncTarget: "opportunities",
+          status: "configured",
+          connectionInfo: JSON.stringify({
+            site: "reasongroup.sharepoint.com/sites/RGSales",
+            list: "Issue tracker  TEST MV",
+            description: "Syncs opportunities from RGSales SharePoint list to Opportunity Qualification Tracker",
+          }),
+        });
+        seeded.push(ds);
+      }
+
+      const hasJP = existing.some(ds => ds.syncTarget === "job_plans");
+      if (!hasJP) {
+        const ds = await storage.createDataSource({
+          name: "SharePoint Job Plans",
+          type: "sharepoint",
+          syncTarget: "job_plans",
+          status: "configured",
+          connectionInfo: JSON.stringify({
+            site: "reasongroup.sharepoint.com/sites/RGDelivery",
+            folder: "General/00.Mgmt/Job Plans/01.Active plans",
+            description: "Syncs Job Plan Excel files from RGDelivery SharePoint to Job Plans",
+          }),
+        });
+        seeded.push(ds);
+      }
+
+      res.json({ seeded: seeded.length, items: seeded });
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.post("/api/data-sources/:id/sync", async (req, res) => {
+    const id = Number(req.params.id);
+    const ds = await storage.getDataSource(id);
+    if (!ds) return res.status(404).json({ message: "Data source not found" });
+
+    try {
+      let result: { imported: number; updated?: number; removed?: number; unchanged?: number; errors: string[]; message: string };
+
+      if (ds.syncTarget === "opportunities") {
+        const { syncSharePointOpenOpps } = await import("./sharepoint-sync");
+        result = await syncSharePointOpenOpps();
+      } else if (ds.syncTarget === "job_plans") {
+        const { syncSharePointJobPlans } = await import("./sharepoint-sync");
+        result = await syncSharePointJobPlans();
+      } else {
+        await storage.updateDataSource(id, { status: "configured" });
+        return res.json({
+          message: `Sync for "${ds.name}" is not yet implemented.`,
+          status: "configured",
+        });
+      }
+
+      const totalProcessed = (result.imported || 0) + (result.updated || 0) + (result.unchanged || 0);
+      let syncStatus = "active";
+      if (result.errors.length > 0 && totalProcessed === 0) {
+        syncStatus = "error";
+      } else if (result.errors.length > 0) {
+        syncStatus = "active_with_warnings";
+      }
+      await storage.updateDataSource(id, {
+        status: syncStatus,
+        recordsProcessed: totalProcessed,
+        lastSyncAt: new Date(),
+      });
+
+      res.json(result);
+    } catch (err: any) {
+      await storage.updateDataSource(id, {
+        status: "error",
+        lastSyncAt: new Date(),
+      });
+      res.status(500).json({ message: err.message, status: "error" });
+    }
   });
 
   return httpServer;

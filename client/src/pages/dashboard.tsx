@@ -51,7 +51,7 @@ function BidCard({ bid, opp, stageKey }: { bid: Bid; opp?: Opportunity; stageKey
     <Link href={`/bids/${bid.id}`}>
       <Card className="hover-elevate cursor-pointer group" data-testid={`workflow-bid-${bid.id}`}>
         <CardContent className="p-3">
-          <p className="text-sm font-medium leading-tight truncate group-hover:text-primary transition-colors" data-testid={`text-bid-title-${bid.id}`}>{bid.title}</p>
+          <p className="text-sm font-medium leading-tight break-words group-hover:text-primary transition-colors" data-testid={`text-bid-title-${bid.id}`}>{bid.title}</p>
 
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {opp?.value && (
@@ -165,22 +165,22 @@ export default function Dashboard() {
       </div>
 
       {bidsLoading ? (
-        <div className="flex gap-3 overflow-x-auto flex-1 pb-4">
+        <div className="grid grid-cols-5 gap-3 flex-1 pb-4">
           {[1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={i} className="h-full min-w-[220px] rounded-xl flex-1" />
+            <Skeleton key={i} className="h-full rounded-xl" />
           ))}
         </div>
       ) : (
-        <div className="flex gap-3 overflow-x-auto flex-1 pb-2 animate-fade-in stagger-5">
+        <div className="grid grid-cols-5 gap-3 flex-1 pb-2 animate-fade-in stagger-5" style={{ gridTemplateColumns: rejectedBids.length > 0 ? 'repeat(6, 1fr)' : 'repeat(5, 1fr)' }}>
           {kanbanStages.map((stage) => {
             const stageBids = bids?.filter((b) => b.stage === stage.key) || [];
             return (
-              <div key={stage.key} className="flex flex-col min-w-[220px] max-w-[280px] flex-1" data-testid={`workflow-stage-${stage.key}`}>
+              <div key={stage.key} className="flex flex-col min-w-0" data-testid={`workflow-stage-${stage.key}`}>
                 <div className={`rounded-t-xl border-t-[3px] ${stage.color} p-3 ${stage.headerBg}`}>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <div className={`h-2 w-2 rounded-full ${stage.dotColor} shrink-0`} />
-                      <h3 className="text-sm font-semibold truncate">{stage.label}</h3>
+                      <h3 className="text-sm font-semibold">{stage.label}</h3>
                     </div>
                     <Badge variant="secondary" className="text-[13px] h-5 min-w-[20px] justify-center font-bold">
                       {stageBids.length}
@@ -210,7 +210,7 @@ export default function Dashboard() {
           })}
 
           {rejectedBids.length > 0 && (
-            <div className="flex flex-col min-w-[220px] max-w-[280px] flex-1" data-testid="workflow-stage-rejected">
+            <div className="flex flex-col min-w-0" data-testid="workflow-stage-rejected">
               <div className="rounded-t-xl border-t-[3px] border-t-destructive p-3 bg-destructive/5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
@@ -227,7 +227,7 @@ export default function Dashboard() {
                   <Link key={bid.id} href={`/bids/${bid.id}`}>
                     <Card className="hover-elevate cursor-pointer border-destructive/10 group" data-testid={`workflow-bid-rejected-${bid.id}`}>
                       <CardContent className="p-3">
-                        <p className="text-sm font-medium truncate group-hover:text-destructive transition-colors">{bid.title}</p>
+                        <p className="text-sm font-medium break-words group-hover:text-destructive transition-colors">{bid.title}</p>
                         <div className="flex items-center gap-2 mt-1.5">
                           {bid.opportunityId && oppMap.get(bid.opportunityId)?.value && (
                             <span className="flex items-center gap-0.5 text-[13px] text-muted-foreground">

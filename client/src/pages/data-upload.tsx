@@ -1,15 +1,16 @@
 import { useState, useRef, useMemo, useCallback } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Target, FileText, ClipboardList, Info, Zap, Calendar, Users, DollarSign } from "lucide-react";
+import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Target, FileText, ClipboardList, Info, Zap, Calendar, Users, DollarSign, RefreshCw, Cloud, Database, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import * as XLSX from "xlsx";
+import type { DataSource } from "@shared/schema";
 
 type UploadType = "opportunities" | "bids" | "job-plans";
 
@@ -1105,12 +1106,218 @@ function UploadPanel({ type }: { type: UploadType }) {
   );
 }
 
+function SharePointSyncPanel() {
+  const { toast } = useToast();
+  const [syncingId, setSyncingId] = useState<number | null>(null);
+  const [syncResults, setSyncResults] = useState<Record<number, any>>({});
+
+  const { data: dataSources = [], isLoading } = useQuery<DataSource[]>({
+    queryKey: ["/api/data-sources"],
+  });
+
+  const seedMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/data-sources/seed");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/data-sources"] });
+      toast({ title: "Data sources seeded", description: `${data.seeded} data source(s) created.` });
+    },
+    onError: (err: any) => {
+      toast({ title: "Seed failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const syncMutation = useMutation({
+    mutationFn: async (id: number) => {
+      setSyncingId(id);
+      const res = await apiRequest("POST", `/api/data-sources/${id}/sync`);
+      return res.json();
+    },
+    onSuccess: (data, id) => {
+      setSyncingId(null);
+      setSyncResults(prev => ({ ...prev, [id]: data }));
+      queryClient.invalidateQueries({ queryKey: ["/api/data-sources"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/opportunities"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/job-plans"] });
+      toast({ title: "Sync complete", description: data.message });
+    },
+    onError: (err: any) => {
+      setSyncingId(null);
+      toast({ title: "Sync failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/data-sources/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/data-sources"] });
+      toast({ title: "Data source removed" });
+    },
+  });
+
+  const statusColor = (status: string) => {
+    if (status === "active") return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400";
+    if (status === "active_with_warnings") return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
+    if (status === "error") return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+    return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400";
+  };
+
+  const targetLabel = (target: string) => {
+    if (target === "opportunities") return "Opportunity Tracker";
+    if (target === "job_plans") return "Job Plans";
+    return target;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <span className="ml-2 text-sm text-muted-foreground">Loading data sources...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-muted-foreground">
+            Connect to SharePoint to sync opportunities and job plans automatically using Microsoft Graph API.
+          </p>
+        </div>
+        {dataSources.length === 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => seedMutation.mutate()}
+            disabled={seedMutation.isPending}
+            data-testid="button-seed-data-sources"
+          >
+            {seedMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Database className="h-3.5 w-3.5 mr-1.5" />}
+            Initialize Sources
+          </Button>
+        )}
+      </div>
+
+      <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20 p-3">
+        <div className="flex items-start gap-2">
+          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+          <div className="text-xs text-blue-800 dark:text-blue-300 space-y-1">
+            <p className="font-medium">SharePoint Connections</p>
+            <div className="space-y-1 text-blue-700 dark:text-blue-400">
+              <p><span className="font-medium">Opportunities:</span> reasongroup.sharepoint.com/sites/RGSales → List: "Issue tracker  TEST MV"</p>
+              <p><span className="font-medium">Job Plans:</span> reasongroup.sharepoint.com/sites/RGDelivery → Folder: General/00.Mgmt/Job Plans/01.Active plans</p>
+            </div>
+            <p className="font-medium mt-2">Required Environment Variables</p>
+            <div className="grid grid-cols-3 gap-x-3 gap-y-0.5 text-blue-700 dark:text-blue-400">
+              <span>AZURE_TENANT_ID</span>
+              <span>AZURE_CLIENT_ID</span>
+              <span>AZURE_CLIENT_SECRET</span>
+            </div>
+            <p className="text-blue-600 dark:text-blue-500">Optional overrides: SHAREPOINT_DOMAIN, SHAREPOINT_SITE_PATH, SHAREPOINT_LIST_NAME, SHAREPOINT_JP_SITE_PATH, SHAREPOINT_JP_FOLDER_PATH</p>
+          </div>
+        </div>
+      </div>
+
+      {dataSources.length === 0 ? (
+        <div className="text-center py-8">
+          <Cloud className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">No data sources configured.</p>
+          <p className="text-xs text-muted-foreground mt-1">Click "Initialize Sources" to create default SharePoint connections.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {dataSources.map((ds) => (
+            <div
+              key={ds.id}
+              className="border rounded-lg p-4 space-y-3"
+              data-testid={`card-data-source-${ds.id}`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Cloud className="h-4 w-4 text-primary" />
+                  <span className="font-medium text-sm" data-testid={`text-ds-name-${ds.id}`}>{ds.name}</span>
+                  <Badge className={`text-xs ${statusColor(ds.status)}`} data-testid={`badge-ds-status-${ds.id}`}>
+                    {ds.status}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => syncMutation.mutate(ds.id)}
+                    disabled={syncingId === ds.id}
+                    data-testid={`button-sync-${ds.id}`}
+                  >
+                    {syncingId === ds.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                    ) : (
+                      <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                    )}
+                    {syncingId === ds.id ? "Syncing..." : "Sync Now"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => deleteMutation.mutate(ds.id)}
+                    data-testid={`button-delete-ds-${ds.id}`}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    ×
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                <span>Target: <span className="text-foreground font-medium">{targetLabel(ds.syncTarget)}</span></span>
+                {ds.connectionInfo && (() => {
+                  try {
+                    const info = JSON.parse(ds.connectionInfo);
+                    return info.site ? <span>Site: <span className="text-foreground font-medium">{info.site}</span></span> : null;
+                  } catch { return null; }
+                })()}
+                <span>Records: <span className="text-foreground font-medium">{ds.recordsProcessed || 0}</span></span>
+                {ds.lastSyncAt && (
+                  <span>Last sync: <span className="text-foreground font-medium">{new Date(ds.lastSyncAt).toLocaleString()}</span></span>
+                )}
+              </div>
+
+              {syncResults[ds.id] && (
+                <div className="rounded-md bg-muted/30 p-3 text-xs space-y-1">
+                  <p className="font-medium text-foreground" data-testid={`text-sync-result-${ds.id}`}>
+                    {syncResults[ds.id].message}
+                  </p>
+                  {syncResults[ds.id].errors && syncResults[ds.id].errors.length > 0 && (
+                    <div className="text-destructive">
+                      <p className="font-medium">Errors ({syncResults[ds.id].errors.length}):</p>
+                      {syncResults[ds.id].errors.slice(0, 5).map((err: string, i: number) => (
+                        <p key={i} className="ml-2">• {err}</p>
+                      ))}
+                      {syncResults[ds.id].errors.length > 5 && (
+                        <p className="ml-2 text-muted-foreground">...and {syncResults[ds.id].errors.length - 5} more</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DataUpload() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
       <div className="animate-fade-in">
         <p className="text-muted-foreground text-sm" data-testid="text-upload-title">
-          Import data from Excel or CSV files
+          Import data from Excel, CSV files, or sync from SharePoint
         </p>
       </div>
 
@@ -1123,7 +1330,7 @@ export default function DataUpload() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="opportunities">
-            <TabsList className="w-full grid grid-cols-3">
+            <TabsList className="w-full grid grid-cols-4">
               <TabsTrigger value="opportunities" className="text-sm" data-testid="tab-upload-opportunities">
                 <Target className="h-3.5 w-3.5 mr-1.5" />
                 Opportunities
@@ -1136,6 +1343,10 @@ export default function DataUpload() {
                 <ClipboardList className="h-3.5 w-3.5 mr-1.5" />
                 Job Plans
               </TabsTrigger>
+              <TabsTrigger value="sharepoint" className="text-sm" data-testid="tab-upload-sharepoint">
+                <Cloud className="h-3.5 w-3.5 mr-1.5" />
+                SharePoint Sync
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="opportunities" className="mt-4">
               <UploadPanel type="opportunities" />
@@ -1145,6 +1356,9 @@ export default function DataUpload() {
             </TabsContent>
             <TabsContent value="job-plans" className="mt-4">
               <UploadPanel type="job-plans" />
+            </TabsContent>
+            <TabsContent value="sharepoint" className="mt-4">
+              <SharePointSyncPanel />
             </TabsContent>
           </Tabs>
         </CardContent>

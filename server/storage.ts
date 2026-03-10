@@ -6,6 +6,7 @@ import type {
   WorkflowLog, InsertWorkflowLog,
   JobPlan, InsertJobPlan,
   JobPlanLine, InsertJobPlanLine,
+  DataSource, InsertDataSource,
 } from "@shared/schema";
 
 function toSnake(obj: Record<string, any>): Record<string, any> {
@@ -63,6 +64,12 @@ export interface IStorage {
   createJobPlanLine(line: InsertJobPlanLine): Promise<JobPlanLine>;
   updateJobPlanLine(id: number, data: Partial<InsertJobPlanLine>): Promise<JobPlanLine | undefined>;
   deleteJobPlanLine(id: number): Promise<void>;
+
+  getAllDataSources(): Promise<DataSource[]>;
+  getDataSource(id: number): Promise<DataSource | undefined>;
+  createDataSource(ds: InsertDataSource): Promise<DataSource>;
+  updateDataSource(id: number, data: Partial<InsertDataSource>): Promise<DataSource | undefined>;
+  deleteDataSource(id: number): Promise<void>;
 
   getDashboardStats(): Promise<{
     totalOpportunities: number;
@@ -208,6 +215,30 @@ export class DatabaseStorage implements IStorage {
 
   async deleteJobPlanLine(id: number): Promise<void> {
     await db("job_plan_lines").where("id", id).del();
+  }
+
+  async getAllDataSources(): Promise<DataSource[]> {
+    const rows = await db("data_sources").select("*").orderBy("created_at", "desc");
+    return toCamelArray<DataSource>(rows);
+  }
+
+  async getDataSource(id: number): Promise<DataSource | undefined> {
+    const row = await db("data_sources").where("id", id).first();
+    return row ? toCamel<DataSource>(row) : undefined;
+  }
+
+  async createDataSource(ds: InsertDataSource): Promise<DataSource> {
+    const [row] = await db("data_sources").insert(toSnake(ds)).returning("*");
+    return toCamel<DataSource>(row);
+  }
+
+  async updateDataSource(id: number, data: Partial<InsertDataSource>): Promise<DataSource | undefined> {
+    const [row] = await db("data_sources").where("id", id).update(toSnake(data)).returning("*");
+    return row ? toCamel<DataSource>(row) : undefined;
+  }
+
+  async deleteDataSource(id: number): Promise<void> {
+    await db("data_sources").where("id", id).del();
   }
 
   async getDashboardStats() {

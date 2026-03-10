@@ -21,23 +21,25 @@ A comprehensive bid management system for Reason Group that manages the full bid
 
 ## Data Model
 - `users` - Team members (CAS leads, CSD leads, bid managers, writers, executives)
-- `opportunities` - Panel opportunities with fields matching SharePoint structure + qualification tracker fields (channel, priority, assignedTo, careDecision, dateIn, source)
+- `opportunities` - Panel opportunities with fields matching SharePoint structure + qualification tracker fields (channel, priority, assignedTo, careDecision, dateIn, source) + `sharepoint_id` for delta sync
 - `bids` - Bid records linked to opportunities with workflow stage tracking
 - `workflow_logs` - Audit trail of all workflow actions
 - `job_plans` - Resource allocation plans (optionally linked to bids)
 - `job_plan_lines` - Individual resource lines with rates, hours, weekly allocations (stored as JSON)
+- `data_sources` - SharePoint sync connection configs (name, type, syncTarget, status, lastSyncAt)
 
 ## File Structure
 ```
-shared/schema.ts       - Data model definitions (Zod schemas + TypeScript types)
-server/db.ts           - Knex database connection (MSSQL or PostgreSQL)
-server/migrate.ts      - Auto-migration: creates tables on startup
-server/storage.ts      - CRUD operations interface (Knex queries)
-server/routes.ts       - API routes (including AI endpoints)
-server/seed.ts         - Database seeding with sample data
-client/src/App.tsx     - Main app with sidebar layout
-client/src/pages/      - Dashboard, Opportunities, Bids, BidDetail, JobPlans, JobPlanDetail, ResourceAllocation, DataUpload
-client/src/components/ - AppSidebar, ThemeProvider, ThemeToggle
+shared/schema.ts              - Data model definitions (Zod schemas + TypeScript types)
+server/db.ts                  - Knex database connection (MSSQL or PostgreSQL)
+server/migrate.ts             - Auto-migration: creates tables on startup
+server/storage.ts             - CRUD operations interface (Knex queries)
+server/routes.ts              - API routes (including AI endpoints)
+server/sharepoint-sync.ts     - SharePoint sync via Microsoft Graph API (opportunities + job plans)
+server/seed.ts                - Database seeding with sample data
+client/src/App.tsx            - Main app with sidebar layout
+client/src/pages/             - Dashboard, Opportunities, Bids, BidDetail, JobPlans, JobPlanDetail, ResourceAllocation, DataUpload
+client/src/components/        - AppSidebar, ThemeProvider, ThemeToggle
 ```
 
 ## API Endpoints
@@ -63,6 +65,35 @@ client/src/components/ - AppSidebar, ThemeProvider, ThemeToggle
 - `POST /api/job-plans/:id/lines` - Add resource line
 - `PATCH /api/job-plan-lines/:id` - Update resource line
 - `DELETE /api/job-plan-lines/:id` - Delete resource line
+- `GET /api/data-sources` - List SharePoint sync sources
+- `POST /api/data-sources` - Create data source
+- `POST /api/data-sources/seed` - Initialize default SharePoint sources (opportunities + job plans)
+- `POST /api/data-sources/:id/sync` - Trigger SharePoint sync for a data source
+
+## SharePoint Sync
+Ported from Finance-Hub (ssengupta123/FinanceHub) and adapted for this project's data model.
+
+### Opportunity Tracker Sync (`syncSharePointOpenOpps`)
+- Reads items from SharePoint List "Issue tracker  TEST MV" on reasongroup.sharepoint.com/sites/RGSales
+- Uses Graph API List Items endpoint (not drive/folder — this is a SharePoint List, not a doc library)
+- Maps SharePoint fields to `opportunities` table (name, phase, value, margin, VAT, leads, etc.)
+- Delta sync using `sharepoint_id`: inserts new, updates changed, archives/deletes removed items
+- Soft-delete for opportunities with linked bids (archives instead of hard-deleting)
+- Phase mapping: A→1.A, Q→2.Q, DF→3.DF, DVF→4.DVF, S→5.S
+- VAT canonicalization: normalizes various VAT spellings to canonical form
+
+### Job Plans Sync (`syncSharePointJobPlans`)
+- Reads Excel (.xlsx) files from SharePoint folder (default: `/sites/RGDelivery/General/00.Mgmt/Job Plans/01.Active plans`)
+- Auto-detects sheet format (standard vs SAU046)
+- Selects best "Time Plan" sheet, extracts resource names, rates, and weekly allocations
+- Creates/updates `job_plans` + `job_plan_lines` records
+- Weekly allocations stored as JSON (week-start-date → percentage)
+
+### Required Env Vars
+- `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET` - Azure AD app registration (client credentials flow)
+- Defaults hardcoded: SHAREPOINT_DOMAIN=reasongroup.sharepoint.com, SHAREPOINT_SITE_PATH=/sites/RGSales, SHAREPOINT_LIST_NAME="Issue tracker  TEST MV"
+- Optional overrides: `SHAREPOINT_DOMAIN`, `SHAREPOINT_SITE_PATH`, `SHAREPOINT_LIST_NAME`, `SHAREPOINT_FOLDER_PATH`
+- Job Plans overrides: `SHAREPOINT_JP_SITE_PATH` (default: /sites/RGDelivery), `SHAREPOINT_JP_FOLDER_PATH` (default: General/00.Mgmt/Job Plans/01.Active plans)
 
 ## Stage Guards
 All workflow transition endpoints validate that the bid is in the correct stage before allowing the action:
@@ -90,6 +121,14 @@ All workflow transition endpoints validate that the bid is in the correct stage 
 - Required Azure env vars: `DB_TYPE=mssql`, `MSSQL_SERVER`, `MSSQL_DATABASE`, `MSSQL_USER`, `MSSQL_PASSWORD`, `SESSION_SECRET`, `OPENAI_API_KEY`
 - App builds to `dist/` with `npm run build` (Vite frontend + esbuild server bundle)
 - Tables are auto-created on first startup via `server/migrate.ts`
+
+## Font & Readability
+- Base font scales responsively: 16px default, 17px at 1920px+, 18px at 2560px+ (CSS media queries in index.css)
+- All pages use minimum 11px for smallest text (allocation cells), 12-13px for labels/badges, text-sm (14px) for body text
+- Muted foreground set to 38% lightness (stronger contrast than default 47%)
+- Sidebar nav items: 15px with h-12 buttons, 20px icons
+- Allocation grid cells: w-12 h-8 in job plans, w-[40px] h-7 in resource allocation heatmap
+- All control heights increased to prevent text clipping (h-7 minimum for buttons, h-8 for inputs)
 
 ## Dependencies
 - OpenAI (Replit AI Integrations on Replit / OPENAI_API_KEY on Azure)

@@ -199,3 +199,27 @@ export type JobPlanLine = {
 };
 
 export type InsertJobPlanLine = z.infer<typeof insertJobPlanLineSchema>;
+
+export const insertDataSourceSchema = z.object({
+  name: z.string().min(1),
+  type: z.string().default("sharepoint"),
+  syncTarget: z.string().min(1),
+  status: z.string().default("configured"),
+  connectionInfo: z.string().nullable().optional(),
+  recordsProcessed: z.number().default(0),
+  lastSyncAt: z.union([z.coerce.date(), z.null()]).optional(),
+});
+
+export type DataSource = {
+  id: number;
+  name: string;
+  type: string;
+  syncTarget: string;
+  status: string;
+  connectionInfo: string | null;
+  recordsProcessed: number;
+  lastSyncAt: Date | null;
+  createdAt: Date;
+};
+
+export type InsertDataSource = z.infer<typeof insertDataSourceSchema>;
